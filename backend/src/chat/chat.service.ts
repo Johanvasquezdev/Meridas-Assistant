@@ -1,0 +1,507 @@
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { AiService, AnswerMode, ConversationMessage } from '../ai/ai.service';
+import { VerificationService } from '../ai/verification.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RagChunk, RagService } from '../rag/rag.service';
+import { ChatResponseDto } from './dto/chat-response.dto';
+import {
+  ConversationListItemDto,
+  ConversationMessagesDto,
+} from './dto/conversation-list.dto';
+
+interface SendMessageInput {
+  tenantId: string;
+  userId: string;
+  message: string;
+  conversationId?: string;
+  mode?: AnswerMode;
+}
+
+interface StreamMessageInput extends SendMessageInput {
+  onToken: (token: string) => void;
+  onDone: (result: {
+    conversationId: string;
+    context: RagChunk[];
+    decisionState?: 'SUPPORTED' | 'CONDITIONAL' | 'CANNOT_ESTABLISH';
+    missingEvidenceGap?: string;
+    evaluations?: any[];
+    usage: { inputTokens: number; outputTokens: number; totalTokens: number };
+  }) => void;
+  onError: (error: Error) => void;
+}
+
+const RAG_TOP_K = 5;
+const MAX_HISTORY_MESSAGES = 20;
+const TITLE_MAX_CHARS = 40;
+const CONVERSATIONS_LIMIT = 50;
+const LAST_MESSAGE_PREVIEW_CHARS = 60;
+
+@Injectable()
+export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ragService: RagService,
+    private readonly aiService: AiService,
+    private readonly verificationService: VerificationService,
+  ) {}
+
+  // ─── Send (non-streaming) ─────────────────────────────────────────────────
+
+  async sendMessage(input: SendMessageInput): Promise<ChatResponseDto> {
+    const message = input.message.trim();
+    if (!message) throw new BadRequestException('message is required');
+
+    const isNewConversation = !input.conversationId;
+
+    const conversation = isNewConversation
+      ? await this.createConversation(input.tenantId, input.userId)
+      : await this.getTenantConversation(input.tenantId, input.conversationId!);
+
+    const [history, context] = await Promise.all([
+      this.getHistory(input.tenantId, conversation.id),
+      this.ragService.retrieve(message, input.tenantId, RAG_TOP_K),
+    ]);
+
+    const startTime = Date.now();
+
+    // Deterministic Meridas Evidence Verification
+    const verification = await this.verificationService.evaluateEvidenceAndAnswer(
+      message,
+      context,
+      'LOW',
+    );
+
+    let aiResponse: {
+      answer: string;
+      context: RagChunk[];
+      usage: { inputTokens: number; outputTokens: number; totalTokens: number };
+    };
+
+    if (verification.decisionState === 'CANNOT_ESTABLISH' && verification.evaluations.length === 0) {
+      aiResponse = {
+        answer: verification.plainAnswer,
+        context,
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+      };
+    } else {
+      aiResponse = await this.aiService.generateResponse({
+        message,
+        context,
+        history,
+        mode: input.mode ?? 'answer',
+      });
+    }
+
+    const finalAnswer = aiResponse.answer;
+    const responseTimeMs = Date.now() - startTime;
+
+    await this.saveMessages(
+      input.tenantId,
+      conversation.id,
+      message,
+      finalAnswer,
+    );
+
+    // Auto-title on first message of a new conversation
+    if (isNewConversation) {
+      await this.setConversationTitle(
+        input.tenantId,
+        conversation.id,
+        message,
+      );
+    }
+
+    await this.trackUsage(input.tenantId, {
+      ...aiResponse.usage,
+      responseTimeMs,
+    });
+
+    return {
+      conversationId: conversation.id,
+      message: finalAnswer,
+      context: aiResponse.context,
+      decisionState: verification.decisionState,
+      missingEvidenceGap: verification.missingEvidenceGap,
+      evaluations: verification.evaluations,
+      usage: aiResponse.usage,
+    };
+  }
+
+  // ─── Stream ───────────────────────────────────────────────────────────────
+
+  async streamMessage(input: StreamMessageInput): Promise<void> {
+    const message = input.message.trim();
+    if (!message) {
+      input.onError(new BadRequestException('message is required'));
+      return;
+    }
+
+    const isNewConversation = !input.conversationId;
+
+    let conversation: { id: string };
+    try {
+      conversation = isNewConversation
+        ? await this.createConversation(input.tenantId, input.userId)
+        : await this.getTenantConversation(
+            input.tenantId,
+            input.conversationId!,
+          );
+    } catch (err) {
+      input.onError(
+        err instanceof Error ? err : new Error('Failed to get conversation'),
+      );
+      return;
+    }
+
+    const [history, context] = await Promise.all([
+      this.getHistory(input.tenantId, conversation.id),
+      this.ragService.retrieve(message, input.tenantId, RAG_TOP_K),
+    ]);
+
+    const verification = await this.verificationService.evaluateEvidenceAndAnswer(
+      message,
+      context,
+      'LOW',
+    );
+
+    if (context.length === 0 || (verification.decisionState === 'CANNOT_ESTABLISH' && verification.evaluations.length === 0)) {
+      const fallback = verification.plainAnswer;
+      input.onToken(fallback);
+      input.onDone({
+        conversationId: conversation.id,
+        context: [],
+        decisionState: 'CANNOT_ESTABLISH',
+        missingEvidenceGap: verification.missingEvidenceGap,
+        evaluations: [],
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+      });
+      return;
+    }
+
+    const promptTokens = this.estimatePromptTokens(
+      message,
+      context,
+      history,
+      input.mode ?? 'answer',
+    );
+    let fullResponse = '';
+    let outputTokens = 0;
+
+    try {
+      for await (const token of this.aiService.streamResponse({
+        message,
+        context,
+        history,
+        mode: input.mode ?? 'answer',
+      })) {
+        fullResponse += token;
+        outputTokens++;
+        input.onToken(token);
+      }
+
+      const usage = {
+        inputTokens: promptTokens,
+        outputTokens,
+        totalTokens: promptTokens + outputTokens,
+      };
+
+      await this.saveMessages(
+        input.tenantId,
+        conversation.id,
+        message,
+        fullResponse,
+      );
+
+      // Auto-title on first message of a new conversation
+      if (isNewConversation) {
+        await this.setConversationTitle(
+          input.tenantId,
+          conversation.id,
+          message,
+        );
+      }
+
+      await this.trackUsage(input.tenantId, usage);
+
+      input.onDone({
+        conversationId: conversation.id,
+        context,
+        decisionState: verification.decisionState,
+        missingEvidenceGap: verification.missingEvidenceGap,
+        evaluations: verification.evaluations,
+        usage,
+      });
+    } catch (err) {
+      this.logger.error(
+        `Stream error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      );
+      input.onError(
+        err instanceof Error ? err : new Error('Stream failed'),
+      );
+    }
+  }
+
+  // ─── Conversations list ───────────────────────────────────────────────────
+
+  async getConversations(
+    tenantId: string,
+    userId: string,
+  ): Promise<ConversationListItemDto[]> {
+    const rows = await this.prisma.conversation.findMany({
+      where: { tenantId, userId },
+      orderBy: { updatedAt: 'desc' },
+      take: CONVERSATIONS_LIMIT,
+      include: {
+        _count: { select: { messages: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { content: true },
+        },
+      },
+    });
+
+    return rows.map((row): ConversationListItemDto => ({
+      id: row.id,
+      title: row.title,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      messageCount: row._count.messages,
+      lastMessage: (row.messages[0]?.content ?? '').slice(
+        0,
+        LAST_MESSAGE_PREVIEW_CHARS,
+      ),
+    }));
+  }
+
+  // ─── Conversation messages ────────────────────────────────────────────────
+
+  async getConversationMessages(
+    tenantId: string,
+    conversationId: string,
+  ): Promise<ConversationMessagesDto> {
+    const conversation = await this.prisma.conversation.findFirst({
+      where: { id: conversationId, tenantId },
+      select: { id: true, title: true, createdAt: true },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    const messages = await this.prisma.message.findMany({
+      where: { tenantId, conversationId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, role: true, content: true, createdAt: true },
+    });
+
+    return {
+      conversation: {
+        id: conversation.id,
+        title: conversation.title,
+        createdAt: conversation.createdAt.toISOString(),
+      },
+      messages: messages
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          createdAt: m.createdAt.toISOString(),
+        })),
+    };
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────
+
+  private async createConversation(tenantId: string, userId: string) {
+    return this.prisma.conversation.create({
+      data: { tenantId, userId },
+      select: { id: true },
+    });
+  }
+
+  private async getTenantConversation(
+    tenantId: string,
+    conversationId: string,
+  ) {
+    const conversation = await this.prisma.conversation.findFirst({
+      where: { id: conversationId, tenantId },
+      select: { id: true },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
+  }
+
+  /**
+   * Generates a short title from the first user message and persists it.
+   * Pure string transformation — no external AI call.
+   *
+   * Algorithm:
+   *   1. Strip non-alphanumeric characters (keep spaces, hyphens, apostrophes)
+   *   2. Collapse multiple spaces
+   *   3. Truncate to TITLE_MAX_CHARS
+   *   4. If truncated, append "…"
+   *   5. Capitalize first letter
+   */
+  private generateTitle(rawMessage: string): string {
+    const cleaned = rawMessage
+      .replace(/[^\w\s\-']/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!cleaned) return 'New Conversation';
+
+    const truncated =
+      cleaned.length > TITLE_MAX_CHARS
+        ? cleaned.slice(0, TITLE_MAX_CHARS).trimEnd() + '…'
+        : cleaned;
+
+    return truncated.charAt(0).toUpperCase() + truncated.slice(1);
+  }
+
+  private async setConversationTitle(
+    tenantId: string,
+    conversationId: string,
+    firstMessage: string,
+  ): Promise<void> {
+    const title = this.generateTitle(firstMessage);
+
+    try {
+      await this.prisma.conversation.updateMany({
+        where: {
+          id: conversationId,
+          tenantId,
+          title: null, // Only set if not already titled (idempotent)
+        },
+        data: { title },
+      });
+
+      this.logger.debug(
+        `Auto-titled conversation ${conversationId}: "${title}"`,
+      );
+    } catch (err) {
+      // Title generation is non-critical — log and continue
+      this.logger.warn(
+        `Failed to auto-title conversation ${conversationId}: ${
+          err instanceof Error ? err.message : 'unknown'
+        }`,
+      );
+    }
+  }
+
+  private async saveMessages(
+    tenantId: string,
+    conversationId: string,
+    userMessage: string,
+    assistantMessage: string,
+  ): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.message.create({
+        data: { tenantId, conversationId, role: 'user', content: userMessage },
+      }),
+      this.prisma.message.create({
+        data: {
+          tenantId,
+          conversationId,
+          role: 'assistant',
+          content: assistantMessage,
+        },
+      }),
+    ]);
+  }
+
+  private estimatePromptTokens(
+    message: string,
+    context: RagChunk[],
+    history: ConversationMessage[],
+    mode: AnswerMode,
+  ): number {
+    const systemPrompt = [
+      'You are Meridas, an operational knowledge verification assistant. Evidence first, answer second.',
+      'Answer only using the provided company context.',
+      'If the context does not contain the answer, say you do not have enough information.',
+      'Do not guess, invent policies, or use outside knowledge.',
+      'When possible, cite the context number like [Context 1].',
+      'Keep answers concise, precise, and professional.',
+      mode === 'summary'
+        ? 'Mode: summary. Summarize the relevant context into clear bullets, then mention the main source context numbers.'
+        : mode === 'exact'
+        ? 'Mode: exact answer. Give the shortest direct answer supported by the context. If useful, quote only a short phrase from the context.'
+        : 'Mode: answer. Answer the user question directly using the context.',
+    ].join('\n');
+
+    const contextText = context
+      .map(
+        (chunk, idx) =>
+          `[Context ${idx + 1}]\nscore: ${chunk.score.toFixed(4)}\ndocumentId: ${
+            chunk.metadata.documentId ?? 'unknown'
+          }\nchunkIndex: ${chunk.metadata.chunkIndex ?? 'unknown'}\n${chunk.text}`,
+      )
+      .join('\n\n');
+
+    const historyText = history
+      .map((m) => `${m.role}: ${m.content}`)
+      .join('\n');
+
+    const fullPrompt = [
+      systemPrompt,
+      `Company context:\n${contextText}`,
+      historyText,
+      `user: ${message}`,
+    ].join('\n');
+
+    return this.aiService.estimateTokens(fullPrompt);
+  }
+
+  private async getHistory(
+    tenantId: string,
+    conversationId: string,
+  ): Promise<ConversationMessage[]> {
+    const messages = await this.prisma.message.findMany({
+      where: { tenantId, conversationId },
+      orderBy: { createdAt: 'desc' },
+      take: MAX_HISTORY_MESSAGES,
+      select: { role: true, content: true },
+    });
+
+    return messages
+      .reverse()
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({
+        role: m.role as ConversationMessage['role'],
+        content: m.content,
+      }));
+  }
+
+  private async trackUsage(
+    tenantId: string,
+    usage: {
+      inputTokens: number;
+      outputTokens: number;
+      responseTimeMs?: number;
+    },
+  ): Promise<void> {
+    if (usage.inputTokens === 0 && usage.outputTokens === 0) return;
+
+    await this.prisma.usage.create({
+      data: {
+        tenantId,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        responseTimeMs: usage.responseTimeMs,
+      },
+    });
+  }
+}

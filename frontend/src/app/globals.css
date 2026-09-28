@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #F7F3EA;
+  --foreground: #151417;
+  --card: #FFFFFF;
+  --card-foreground: #151417;
+  --muted: #EFE9DC;
+  --muted-foreground: #6B685F;
+  --primary: #9E1B32;
+  --primary-foreground: #F7F3EA;
+  --accent: #C9A227;
+  --accent-foreground: #151417;
+  --border: #E2DBD0;
+  --ring: #9E1B32;
+}
+
+.dark {
+  --background: #151417;
+  --foreground: #F7F3EA;
+  --card: #1C1B20;
+  --card-foreground: #F7F3EA;
+  --muted: #232229;
+  --muted-foreground: #8C8A94;
+  --primary: #9E1B32;
+  --primary-foreground: #F7F3EA;
+  --accent: #C9A227;
+  --accent-foreground: #151417;
+  --border: #2A2832;
+  --ring: #C9A227;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --color-meridas-crimson: #9E1B32;
+  --color-meridas-crimson-hover: #B8223C;
+  --color-meridas-gold: #C9A227;
+  --color-meridas-gold-light: #DFC052;
+  --color-meridas-charcoal: #151417;
+  --color-meridas-card: #1C1B20;
+  --color-meridas-ivory: #F7F3EA;
+
+  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-code: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+  }
+
+  pre, code, kbd, samp {
+    font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  }
+}
+
+/* ── Animations ────────────────────────────────── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ── Ambient Background Animations ──────────────── */
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, -6%) scale(1.1); }
+  66% { transform: translate(-2%, 4%) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+}
+
+.animate-drift {
+  animation: drift 35s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-drift-slow {
+  animation: drift 45s ease-in-out infinite reverse;
+  will-change: transform;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 12s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift, .animate-drift-slow, .animate-pulse-soft {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(158, 27, 50, 0.4);
+  border-radius: 3px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 162, 39, 0.6);
+}
+
+/* Hide Clerk internal development badge */
+.cl-internal-b3fm6y {
+  display: none !important;
+}
