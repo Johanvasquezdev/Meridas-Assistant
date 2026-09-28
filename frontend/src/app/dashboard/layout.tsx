@@ -17,20 +17,25 @@ import {
   Search,
   Code,
   Laptop,
+  Plus,
+  ShieldCheck,
+  Scale,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { MeridasIcon } from "@/components/brand/MeridasLogo";
 
 const sidebarLinks = [
-  { label: "Chat", href: "/dashboard/chat", icon: MessageSquare },
-  { label: "Documents", href: "/dashboard/documents", icon: FileText },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Widget", href: "/dashboard/settings/widget", icon: Laptop },
-  { label: "API Docs", href: "/dashboard/api-reference", icon: Code },
+  { label: "AI Chat Assistant", href: "/dashboard/chat", icon: MessageSquare },
+  { label: "Knowledge Vault", href: "/dashboard/documents", icon: FileText },
+  { label: "Conflict Desk", href: "/dashboard/conflicts", icon: Scale },
+  { label: "Evidence Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { label: "API Governance", href: "/dashboard/api-reference", icon: Code },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
-  { label: "Billing", href: "/billing", icon: CreditCard },
+  { label: "Billing & Plans", href: "/billing", icon: CreditCard },
 ];
 
 export default function DashboardLayout({
@@ -71,26 +76,43 @@ export default function DashboardLayout({
         {/* Sidebar */}
         <aside
           className={cn(
-            "relative flex flex-col border-r border-border bg-card/50 transition-all duration-300 backdrop-blur-xl z-20",
+            "relative flex flex-col border-r border-border bg-[#151417] transition-all duration-300 z-20",
             collapsed ? "w-20" : "w-64"
           )}
         >
           {/* Sidebar Logo */}
-          <div className="flex h-16 items-center px-6">
+          <div className="flex h-18 items-center px-5 border-b border-border/60">
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-[2px] bg-[#7c3aed] text-[18px] font-bold text-white shadow-lg">
-                S
-              </div>
+              <MeridasIcon size={collapsed ? 32 : 36} />
               {!collapsed && (
-                <span className="text-sm font-bold tracking-tight text-foreground">
-                  SupportMind AI
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold tracking-[0.2em] text-[#F7F3EA] uppercase leading-none font-sans">
+                    MERIDAS
+                  </span>
+                  <span className="font-sans text-[10px] text-[#C9A227] tracking-wider mt-1 font-medium">
+                    Support Intelligence
+                  </span>
+                </div>
               )}
             </Link>
           </div>
 
+          {/* New Chat Quick Action */}
+          <div className="px-3 pt-4 pb-2">
+            <Link
+              href="/dashboard/chat"
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-[10px] bg-[#9E1B32] hover:bg-[#BA243F] text-[#F7F3EA] border border-[#C9A227]/40 py-2.5 px-3 text-xs font-semibold tracking-wide shadow-md shadow-[#9E1B32]/25 transition-all font-sans",
+                collapsed && "px-0"
+              )}
+            >
+              <Plus className="size-4 shrink-0 text-[#C9A227]" />
+              {!collapsed && <span>New Inquiry</span>}
+            </Link>
+          </div>
+
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 space-y-1 px-3 py-2 overflow-y-auto chat-scrollbar font-sans">
             {sidebarLinks.map((link) => {
               const isActive =
                 pathname === link.href || pathname.startsWith(link.href + "/");
@@ -101,51 +123,72 @@ export default function DashboardLayout({
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "group flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-sm font-medium transition-all",
+                    "group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-xs font-medium transition-all font-sans",
                     isActive
-                      ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-l-2 border-purple-500"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-[#9E1B32]/15 text-[#F7F3EA] border-l-2 border-[#C9A227] font-semibold"
+                      : "text-[#8C8A94] hover:bg-[#1C1B20] hover:text-[#F7F3EA]"
                   )}
                 >
                   <Icon
                     className={cn(
-                      "size-5 shrink-0 transition-transform group-hover:scale-110",
-                      isActive && "text-purple-600 dark:text-purple-400"
+                      "size-4.5 shrink-0 transition-transform group-hover:scale-110",
+                      isActive ? "text-[#C9A227]" : "text-[#8C8A94]"
                     )}
                   />
-                  {!collapsed && <span>{link.label}</span>}
+                  {!collapsed && <span className="tracking-wide font-sans">{link.label}</span>}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Search */}
-          <div className="border-t border-border px-3 py-2">
+          {/* Search Shortcut */}
+          <div className="border-t border-border px-3 py-2 font-sans">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               className={cn(
-                "flex w-full items-center rounded-[2px] px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                "flex w-full items-center rounded-[8px] px-3 py-2 text-xs font-medium text-[#8C8A94] transition-colors hover:bg-[#1C1B20] hover:text-[#F7F3EA]",
                 collapsed ? "justify-center" : "justify-between"
               )}
               aria-label="Open search"
             >
-              <span className="flex items-center gap-3">
-                <Search className="size-5 shrink-0" />
-                {!collapsed && <span>Search</span>}
+              <span className="flex items-center gap-2.5">
+                <Search className="size-4 shrink-0" />
+                {!collapsed && <span>Search Policies</span>}
               </span>
               {!collapsed && (
-                <span className="font-mono text-[10px] text-[#6B6A72]">
+                <span className="font-sans text-[10px] font-medium text-[#C9A227] bg-[#1C1B20] px-1.5 py-0.5 rounded border border-border">
                   {shortcutLabel}
                 </span>
               )}
             </button>
           </div>
 
+          {/* Grounded Status Banner */}
+          {!collapsed && (
+            <div className="mx-3 my-2 p-3.5 rounded-[12px] bg-gradient-to-b from-[#1C1B20] to-[#151417] border border-[#C9A227]/30 shadow-lg font-sans">
+              <div className="flex items-center gap-2 mb-1.5">
+                <ShieldCheck className="size-4 text-[#C9A227]" />
+                <span className="font-sans text-xs font-semibold text-[#F7F3EA]">
+                  Verified Documents
+                </span>
+              </div>
+              <p className="text-[11px] text-[#8C8A94] leading-relaxed mb-2.5 font-sans">
+                Every response is cross-checked against official company guidelines.
+              </p>
+              <Link
+                href="/billing"
+                className="block text-center py-1.5 px-3 rounded-[6px] bg-[#9E1B32]/30 hover:bg-[#9E1B32]/50 border border-[#C9A227]/40 text-xs font-sans text-[#C9A227] font-medium transition-all"
+              >
+                View Plans & Usage
+              </Link>
+            </div>
+          )}
+
           {/* User Profile */}
-          <div className="border-t border-border px-3 py-3">
+          <div className="border-t border-border px-3 py-3 font-sans">
             <div className={cn(
-              "flex items-center gap-3 rounded-[2px] px-3 py-2",
+              "flex items-center gap-3 rounded-[8px] px-2 py-1.5",
               collapsed ? "justify-center" : "justify-start"
             )}>
               <UserButton
@@ -155,16 +198,16 @@ export default function DashboardLayout({
                 appearance={{
                   elements: {
                     avatarBox:
-                      "size-8 border-2 border-purple-500/50 rounded-[2px]",
+                      "size-8 border-2 border-[#C9A227]/60 rounded-[8px]",
                   },
                 }}
               />
               {!collapsed && (
-                <div className="flex flex-col min-w-0 overflow-hidden">
-                  <p className="text-xs font-bold text-foreground leading-snug">
-                    {user?.fullName || "User"}
+                <div className="flex flex-col min-w-0 overflow-hidden font-sans">
+                  <p className="text-xs font-bold text-[#F7F3EA] leading-snug">
+                    {user?.fullName || "Operator"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">
+                  <p className="text-[10px] text-[#8C8A94] truncate leading-tight mt-0.5">
                     {user?.primaryEmailAddress?.emailAddress}
                   </p>
                 </div>
@@ -173,19 +216,19 @@ export default function DashboardLayout({
           </div>
 
           {/* Collapse toggle */}
-          <div className="border-t border-border px-3 py-2">
+          <div className="border-t border-border px-3 py-2 font-sans">
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
-              className="flex w-full items-center justify-center gap-2 rounded-[2px] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex w-full items-center justify-center gap-2 rounded-[6px] px-3 py-1.5 text-[#8C8A94] transition-colors hover:bg-[#1C1B20] hover:text-[#F7F3EA]"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
-                <ChevronRight className="size-5" />
+                <ChevronRight className="size-4" />
               ) : (
                 <>
-                  <ChevronLeft className="size-5" />
-                  <span className="text-xs font-bold uppercase tracking-widest">
+                  <ChevronLeft className="size-4" />
+                  <span className="text-xs font-medium font-sans">
                     Collapse
                   </span>
                 </>
@@ -195,23 +238,29 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main content area */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden bg-background font-sans">
           {/* Top bar */}
-          <header className="flex h-16 items-center justify-between border-b border-border bg-card/50 px-6 backdrop-blur-xl">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              {sidebarLinks.find(
-                (l) => pathname === l.href || pathname.startsWith(l.href + "/")
-              )?.label ?? "Dashboard"}
-            </h2>
+          <header className="flex h-14 items-center justify-between border-b border-border bg-[#151417]/90 px-6 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <h2 className="text-sm font-semibold tracking-wide text-[#F7F3EA] font-sans">
+                {sidebarLinks.find(
+                  (l) => pathname === l.href || pathname.startsWith(l.href + "/")
+                )?.label ?? "Dashboard"}
+              </h2>
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/25 text-[11px] text-[#C9A227] font-medium font-sans">
+                <span className="size-1.5 rounded-full bg-[#C9A227] animate-pulse" />
+                <span>AI Assistant Grounded</span>
+              </div>
+            </div>
             <div className="flex items-center gap-4">
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="flex size-9 items-center justify-center rounded-[2px] border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95"
+                  className="flex size-8 items-center justify-center rounded-[8px] border border-border text-[#8C8A94] hover:bg-[#1C1B20] hover:text-[#F7F3EA] transition-all active:scale-95"
                   aria-label="Toggle theme"
                 >
                   {theme === "dark" ? (
-                    <Sun className="size-4" />
+                    <Sun className="size-4 text-[#C9A227]" />
                   ) : (
                     <Moon className="size-4" />
                   )}

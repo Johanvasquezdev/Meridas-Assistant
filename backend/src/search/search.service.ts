@@ -253,7 +253,7 @@ export class SearchService {
     tenantId: string,
     limit: number,
   ): Promise<KeywordSearchResult[]> {
-    const rows = await this.prisma.$queryRaw<KeywordRow[]>(Prisma.sql`
+    let rows = await this.prisma.$queryRaw<KeywordRow[]>(Prisma.sql`
       SELECT
         dc.id,
         dc."documentId",
@@ -267,6 +267,37 @@ export class SearchService {
       ORDER BY rank DESC
       LIMIT ${limit}
     `);
+
+    if (rows.length === 0) {
+      const stopWords = new Set(['what', 'is', 'the', 'under', 'who', 'are', 'required', 'for', 'and', 'or', 'in', 'on', 'of', 'to', 'a', 'an', 'can', 'with', 'from', 'this', 'that', 'how', 'when', 'where', 'why']);
+      const cleanWords = query
+        .replace(/[^\w\s-]/g, ' ')
+        .split(/\s+/)
+        .map((w) => w.trim().replace(/^-+|-+$/g, ''))
+        .filter((w) => w.length > 2 && !stopWords.has(w.toLowerCase()));
+
+      if (cleanWords.length > 0) {
+        const orExpr = cleanWords.slice(0, 10).join(' | ');
+        try {
+          rows = await this.prisma.$queryRaw<KeywordRow[]>(Prisma.sql`
+            SELECT
+              dc.id,
+              dc."documentId",
+              dc."chunkIndex",
+              dc.text,
+              dc."tenantId",
+              ts_rank(dc.search_vector, to_tsquery('english', ${orExpr}))::float AS rank
+            FROM "DocumentChunk" dc
+            WHERE dc."tenantId" = ${tenantId}
+              AND dc.search_vector @@ to_tsquery('english', ${orExpr})
+            ORDER BY rank DESC
+            LIMIT ${limit}
+          `);
+        } catch {
+          // If to_tsquery encounters malformed syntax, proceed with empty rows
+        }
+      }
+    }
 
     if (rows.length === 0) {
       return [];
@@ -327,12 +358,25 @@ export class SearchService {
       });
     }
 
+    const hasVectors = vectorResults.length > 0;
+    const hasKeywords = keywordResults.length > 0;
+    let vWeight = options.vectorWeight;
+    let kWeight = options.keywordWeight;
+
+    if (hasVectors && !hasKeywords) {
+      vWeight = 1.0;
+      kWeight = 0.0;
+    } else if (!hasVectors && hasKeywords) {
+      vWeight = 0.0;
+      kWeight = 1.0;
+    }
+
     const merged = Array.from(candidates.values())
       .map((candidate) => ({
         ...candidate,
         hybridScore: this.clampScore(
-          candidate.vectorScore * options.vectorWeight +
-          candidate.keywordScore * options.keywordWeight,
+          candidate.vectorScore * vWeight +
+          candidate.keywordScore * kWeight,
         ),
       }))
       .sort((a, b) => b.hybridScore - a.hybridScore);

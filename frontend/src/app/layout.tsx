@@ -17,8 +17,13 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SupportMind AI",
-  description: "AI customer support trained on your company knowledge.",
+  title: "MERIDAS — AI Support Intelligence",
+  description: "Evidence first. Answer second. Grounded, precise, intelligent, and trustworthy AI support platform.",
+  icons: {
+    icon: "/meridas-icon.svg",
+    shortcut: "/meridas-icon.svg",
+    apple: "/meridas-icon.svg",
+  },
 };
 
 import { ToastProvider } from "@/components/ui/Toast";
@@ -31,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`} suppressHydrationWarning>
-      <body className="antialiased" suppressHydrationWarning>
+      <body className="antialiased font-sans" suppressHydrationWarning>
         <ClerkProvider appearance={clerkAppearance}>
           <ThemeProvider
             attribute="class"

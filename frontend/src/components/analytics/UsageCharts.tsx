@@ -22,8 +22,8 @@ export function UsageCharts({ data, isLoading }: UsageChartsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-[350px] animate-pulse rounded-[2px] border border-border bg-card" />
-        <div className="h-[350px] animate-pulse rounded-[2px] border border-border bg-card" />
+        <div className="h-[350px] animate-pulse rounded-[14px] border border-border bg-card" />
+        <div className="h-[350px] animate-pulse rounded-[14px] border border-border bg-card" />
       </div>
     );
   }
@@ -33,14 +33,14 @@ export function UsageCharts({ data, isLoading }: UsageChartsProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="group relative rounded-[2px] border border-border bg-card p-6 backdrop-blur-xl overflow-hidden"
+        className="group relative rounded-[14px] border border-[#2A2832] bg-[#1C1B20] p-6 shadow-xl overflow-hidden"
       >
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C9A227]/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         <div className="mb-6">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Message Volume</h3>
-          <p className="text-sm font-semibold text-foreground">Daily user and AI activity</p>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Grounded Query Volume</h3>
+          <p className="text-sm font-semibold text-[#F7F3EA]">Daily operator and verified response activity</p>
         </div>
         
         <div className="h-[280px] w-full">
@@ -48,39 +48,39 @@ export function UsageCharts({ data, isLoading }: UsageChartsProps) {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorMessages" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#9E1B32" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#9E1B32" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2A2832" vertical={false} />
               <XAxis 
                 dataKey="date" 
-                stroke="var(--muted-foreground)" 
+                stroke="#8C8A94" 
                 fontSize={10}
                 tickFormatter={(str) => {
                   const date = new Date(str);
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }}
               />
-              <YAxis stroke="var(--muted-foreground)" fontSize={10} />
+              <YAxis stroke="#8C8A94" fontSize={10} />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'var(--card)', 
-                  border: '1px solid var(--border)',
-                  borderRadius: '2px',
+                  backgroundColor: '#151417', 
+                  border: '1px solid #C9A227',
+                  borderRadius: '8px',
                   fontSize: '11px',
                   fontFamily: '"IBM Plex Mono", monospace',
-                  color: 'var(--foreground)'
+                  color: '#F7F3EA'
                 }}
-                itemStyle={{ color: 'var(--foreground)' }}
+                itemStyle={{ color: '#F7F3EA' }}
               />
               <Area 
                 type="monotone" 
                 dataKey="messages" 
-                stroke="#7c3aed" 
+                stroke="#C9A227" 
                 fillOpacity={1} 
                 fill="url(#colorMessages)" 
-                strokeWidth={2}
+                strokeWidth={2.5}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -88,46 +88,46 @@ export function UsageCharts({ data, isLoading }: UsageChartsProps) {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="group relative rounded-[2px] border border-border bg-card p-6 backdrop-blur-xl overflow-hidden"
+        transition={{ delay: 0.15 }}
+        className="group relative rounded-[14px] border border-[#2A2832] bg-[#1C1B20] p-6 shadow-xl overflow-hidden"
       >
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#9E1B32]/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         <div className="mb-6">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Token Consumption</h3>
-          <p className="text-sm font-semibold text-foreground">AI compute usage trends</p>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Token & Compute Ingestion</h3>
+          <p className="text-sm font-semibold text-[#F7F3EA]">Semantic compute utilization over time</p>
         </div>
         
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2A2832" vertical={false} />
               <XAxis 
                 dataKey="date" 
-                stroke="var(--muted-foreground)" 
+                stroke="#8C8A94" 
                 fontSize={10}
                 tickFormatter={(str) => {
                   const date = new Date(str);
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }}
               />
-              <YAxis stroke="var(--muted-foreground)" fontSize={10} />
+              <YAxis stroke="#8C8A94" fontSize={10} />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'var(--card)', 
-                  border: '1px solid var(--border)',
-                  borderRadius: '2px',
+                  backgroundColor: '#151417', 
+                  border: '1px solid #C9A227',
+                  borderRadius: '8px',
                   fontSize: '11px',
                   fontFamily: '"IBM Plex Mono", monospace',
-                  color: 'var(--foreground)'
+                  color: '#F7F3EA'
                 }}
-                itemStyle={{ color: 'var(--foreground)' }}
+                itemStyle={{ color: '#F7F3EA' }}
               />
               <Bar 
                 dataKey="tokens" 
-                fill="#7c3aed" 
-                radius={[2, 2, 0, 0]}
+                fill="#9E1B32" 
+                radius={[6, 6, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>

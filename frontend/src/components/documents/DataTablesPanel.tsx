@@ -86,13 +86,13 @@ function DataTableView({
   }
 
   return (
-    <div className="space-y-3 border-b border-[#1a1a2e] pb-6 last:border-b-0 last:pb-0">
+    <div className="space-y-3 border-b border-[#2A2832] pb-6 last:border-b-0 last:pb-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-[14px] font-bold text-[#F0EEE9]">
+          <h3 className="text-sm font-semibold text-[#F7F3EA]">
             {table.title || `Table ${index + 1}`}
           </h3>
-          <p className="font-mono text-[11px] text-[#6B6A72]">
+          <p className="font-sans text-xs text-[#8C8A94]">
             {rows.length} rows
           </p>
         </div>
@@ -105,29 +105,29 @@ function DataTableView({
               `${safeFilename(documentTitle)}-table-${index + 1}.csv`,
             )
           }
-          className="font-mono text-[11px] text-[#6B6A72] transition-colors hover:text-[#F0EEE9]"
+          className="font-sans text-xs font-semibold text-[#C9A227] transition-colors hover:text-[#DFB943]"
         >
           Export CSV
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-[8px] border border-[#2A2832]">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-[#12121f]">
+            <tr className="bg-[#151417]">
               {table.headers.map((header, column) => (
                 <th
                   key={`${header}-${column}`}
-                  className="border-b border-[#1a1a2e] px-3 py-2 text-left font-mono text-[11px] uppercase tracking-[0.08em] text-[#6B6A72]"
+                  className="border-b border-[#2A2832] px-3 py-2.5 text-left font-sans text-xs font-semibold tracking-wider text-[#8C8A94]"
                 >
                   <button
                     type="button"
                     onClick={() => toggleSort(column)}
-                    className="flex items-center gap-1 transition-colors hover:text-[#F0EEE9]"
+                    className="flex items-center gap-1 transition-colors hover:text-[#F7F3EA]"
                   >
                     {header}
                     {sort?.column === column && (
-                      <span className="text-[#7c3aed]">
+                      <span className="text-[#C9A227]">
                         {sort.direction === "asc" ? "↑" : "↓"}
                       </span>
                     )}
@@ -140,13 +140,13 @@ function DataTableView({
             {visibleRows.map((row, rowIndex) => (
               <tr
                 key={`${table.id}-${rowIndex}`}
-                className="border-b border-[#1a1a2e] odd:bg-[#0d0d1a] even:bg-[#080810] hover:bg-[#12121f]"
+                className="border-b border-[#2A2832] odd:bg-[#1C1B20] even:bg-[#151417] hover:bg-[#222027] transition-colors"
               >
                 {table.headers.map((header, column) => (
                   <td
                     key={`${header}-${column}`}
                     title={row[column] ?? ""}
-                    className="max-w-[240px] truncate px-3 py-2 text-[13px] text-[#F0EEE9]"
+                    className="max-w-[240px] truncate px-3 py-2.5 font-sans text-xs text-[#F7F3EA]"
                   >
                     {row[column] ?? ""}
                   </td>
@@ -161,7 +161,7 @@ function DataTableView({
         <button
           type="button"
           onClick={() => setShowAll((value) => !value)}
-          className="font-mono text-[11px] text-[#6B6A72] transition-colors hover:text-[#F0EEE9]"
+          className="font-sans text-xs font-semibold text-[#8C8A94] transition-colors hover:text-[#C9A227]"
         >
           {showAll ? "Show first 10 rows" : `Show all ${sortedRows.length} rows`}
         </button>
@@ -195,34 +195,34 @@ export function DataTablesPanel({
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="overflow-hidden rounded-b-[4px] border border-t-0 border-[#1a1a2e] bg-[#0d0d1a]"
+      className="overflow-hidden rounded-b-[10px] border border-t-0 border-[#2A2832] bg-[#1C1B20]"
     >
       <div className="space-y-6 px-6 py-5">
         {isLoading && (
           <div className="animate-pulse space-y-2">
-            <div className="h-8 w-44 rounded-[2px] bg-[#12121f]" />
+            <div className="h-8 w-44 rounded-[6px] bg-[#151417]" />
             {[0, 1, 2, 3].map((row) => (
               <div key={row} className="grid grid-cols-3 gap-2">
-                <div className="h-9 rounded-[2px] bg-[#12121f]" />
-                <div className="h-9 rounded-[2px] bg-[#12121f]" />
-                <div className="h-9 rounded-[2px] bg-[#12121f]" />
+                <div className="h-9 rounded-[6px] bg-[#151417]" />
+                <div className="h-9 rounded-[6px] bg-[#151417]" />
+                <div className="h-9 rounded-[6px] bg-[#151417]" />
               </div>
             ))}
           </div>
         )}
 
         {!isLoading && error && (
-          <p className="text-sm text-[#FF4545]">
+          <p className="font-sans text-xs text-red-400">
             Failed to extract tables. Try again.
           </p>
         )}
 
         {!isLoading && data?.length === 0 && (
           <div className="space-y-1">
-            <p className="text-[14px] text-[#6B6A72]">
+            <p className="text-sm font-semibold text-[#8C8A94]">
               No structured tables found in this document.
             </p>
-            <p className="text-[13px] text-[#6B6A72]">
+            <p className="text-xs text-[#8C8A94]">
               Tables with rows and columns will appear here automatically.
             </p>
           </div>

@@ -4,41 +4,48 @@ import { motion } from "framer-motion";
 
 const industries = [
   {
-    title: "E-commerce Support",
-    description: "Handle order tracking, returns, and product questions instantly across all channels.",
-    metric: "95%",
-    label: "Resolution rate",
+    title: "Operational & Logistics Support",
+    description: "Handle warranty dispatches, RMA tracking, and inventory exceptions with strict SLA citations.",
+    metric: "99.4%",
+    label: "Audit compliance",
   },
   {
-    title: "SaaS Onboarding",
-    description: "Guide new users through setup, answer technical questions, and reduce churn rates.",
-    metric: "60%",
-    label: "Faster onboarding",
+    title: "Mission-Critical SaaS",
+    description: "Deliver API and documentation-grounded answers to developer and enterprise client inquiries.",
+    metric: "80%",
+    label: "Faster ticket triage",
   },
   {
-    title: "HR & Internal Support",
-    description: "Answer employee questions about benefits, policies, and IT support 24/7.",
-    metric: "70%",
-    label: "Ticket reduction",
+    title: "Healthcare & Regulatory Services",
+    description: "Enforce strict compliance protocols with zero tolerance for generative hallucinations.",
+    metric: "100%",
+    label: "Traceable references",
   },
   {
-    title: "Financial Services",
-    description: "Provide instant account information, transaction details, and secure fraud alerts.",
+    title: "Financial & Corporate Governance",
+    description: "Provide verified policy interpretations and procedural audit logs for internal staff.",
     metric: "99.9%",
-    label: "Accuracy rating",
+    label: "Grounding confidence",
   },
 ];
 
 export function IndustryCarousel() {
   return (
-    <section id="industries" className="py-[120px] border-b border-[#1a1a2e]">
-      <div className="mx-auto max-w-[1200px] px-6">
+    <section id="industries" className="py-[120px] border-b border-[#2A2832] bg-[#151417]">
+      <div className="mx-auto max-w-[1240px] px-6">
         
         {/* Header */}
         <div className="mb-16">
-          <h2 className="font-sans text-[48px] font-bold text-[#F0EEE9] mb-4">Where It Deploys</h2>
-          <p className="font-sans text-[16px] text-[#6B6A72]">
-            SupportMind AI scales across diverse sectors with vertical-specific precision.
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] border border-[#C9A227]/30 bg-[#9E1B32]/10 mb-4">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#C9A227] font-semibold">
+              Deployment Matrix
+            </span>
+          </div>
+          <h2 className="font-sans text-[40px] sm:text-[48px] font-bold text-[#F7F3EA] mb-4">
+            Where Precision Is Non-Negotiable
+          </h2>
+          <p className="font-sans text-[16px] text-[#8C8A94] max-w-[560px]">
+            MERIDAS scales across compliance-heavy environments where wrong answers carry serious consequences.
           </p>
         </div>
 
@@ -51,22 +58,25 @@ export function IndustryCarousel() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="bg-[#0d0d1a] border border-[#1a1a2e] rounded-[2px] p-8 group hover:border-[#7c3aed] transition-all duration-200"
+              className="bg-[#1C1B20] border border-[#2A2832] rounded-[16px] p-8 group hover:border-[#C9A227]/50 transition-all duration-300 shadow-xl"
             >
               <div className="flex flex-col h-full justify-between gap-8">
                 <div>
-                  <h3 className="font-sans text-[18px] font-bold text-[#F0EEE9] mb-3">{item.title}</h3>
-                  <p className="font-sans text-[14px] text-[#6B6A72] leading-relaxed">
+                  <h3 className="font-sans text-[20px] font-bold text-[#F7F3EA] mb-3 group-hover:text-[#C9A227] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="font-sans text-[14px] text-[#8C8A94] leading-relaxed">
                     {item.description}
                   </p>
                 </div>
-                <div>
-                  <div className="font-mono text-[40px] text-[#7c3aed] leading-none mb-1">
+
+                <div className="pt-6 border-t border-[#2A2832] flex items-baseline gap-3">
+                  <span className="font-mono text-[36px] font-bold text-[#C9A227] leading-none">
                     {item.metric}
-                  </div>
-                  <div className="font-mono text-[11px] text-[#6B6A72] uppercase tracking-wider">
+                  </span>
+                  <span className="font-sans text-xs text-[#8C8A94] uppercase tracking-wider">
                     {item.label}
-                  </div>
+                  </span>
                 </div>
               </div>
             </motion.article>

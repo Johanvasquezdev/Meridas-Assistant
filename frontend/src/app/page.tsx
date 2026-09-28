@@ -1,4 +1,3 @@
-import { ChatDemoSection } from "@/components/ChatDemo";
 import { FAQ } from "@/components/FAQ";
 import { Features } from "@/components/Features";
 import { Footer } from "@/components/Footer";
@@ -9,19 +8,16 @@ import { Navbar } from "@/components/Navbar";
 import { Pricing } from "@/components/Pricing";
 import { Security } from "@/components/Security";
 import { Stats } from "@/components/Stats";
-import { Testimonials } from "@/components/Testimonials";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#080810] text-[#F0EEE9] selection:bg-[#7c3aed]/30">
+    <main className="min-h-screen overflow-hidden bg-[#151417] text-[#F7F3EA] selection:bg-[#9E1B32]/40 selection:text-[#F7F3EA]">
       <Navbar />
       <Hero />
       <Stats />
-      <ChatDemoSection />
       <HowItWorks />
       <Features />
       <IndustryCarousel />
-      <Testimonials />
       <Pricing />
       <Security />
       <FAQ />

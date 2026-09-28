@@ -62,17 +62,17 @@ export function TextSummaryPanel({ documentId }: TextSummaryPanelProps) {
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="overflow-hidden rounded-b-[4px] border border-t-0 border-[#1a1a2e] bg-[#0d0d1a]"
+      className="overflow-hidden rounded-b-[10px] border border-t-0 border-[#2A2832] bg-[#1C1B20]"
     >
       <div className="relative px-6 py-5">
         {isLoading && (
           <div className="space-y-3">
-            <p className="font-mono text-[12px] text-[#6B6A72]">
+            <p className="font-sans text-xs text-[#8C8A94]">
               Generating summary...
             </p>
-            <div className="h-px overflow-hidden bg-[#1a1a2e]">
+            <div className="h-0.5 overflow-hidden rounded-full bg-[#151417]">
               <motion.div
-                className="h-full w-1/3 bg-[#7c3aed]"
+                className="h-full w-1/3 bg-[#C9A227]"
                 animate={{ x: ["-100%", "320%"] }}
                 transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
               />
@@ -81,7 +81,7 @@ export function TextSummaryPanel({ documentId }: TextSummaryPanelProps) {
         )}
 
         {!isLoading && error && (
-          <p className="text-sm text-[#FF4545]">
+          <p className="font-sans text-xs text-red-400">
             Failed to generate summary. Try again.
           </p>
         )}
@@ -89,23 +89,23 @@ export function TextSummaryPanel({ documentId }: TextSummaryPanelProps) {
         {!isLoading && data && (
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
-              <p className="whitespace-pre-line text-[14px] leading-7 text-[#F0EEE9]">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-[#F7F3EA]">
                 {visibleSummary || "No summary was generated for this document."}
               </p>
               {data.cached && (
-                <span className="shrink-0 rounded-[2px] border border-[#1a1a2e] px-2 py-1 font-mono text-[10px] text-[#6B6A72]">
+                <span className="shrink-0 rounded-[6px] border border-[#2A2832] bg-[#151417] px-2 py-0.5 font-sans text-[10px] font-semibold tracking-wider text-[#8C8A94]">
                   CACHED
                 </span>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1a1a2e] pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#2A2832] pt-3">
               <div className="flex items-center gap-4">
                 {canExpand && (
                   <button
                     type="button"
                     onClick={() => setExpanded((value) => !value)}
-                    className="font-mono text-[11px] text-[#6B6A72] transition-colors hover:text-[#F0EEE9]"
+                    className="font-sans text-xs text-[#8C8A94] transition-colors hover:text-[#C9A227]"
                   >
                     {expanded ? "Show less" : "Show full summary"}
                   </button>
@@ -113,19 +113,19 @@ export function TextSummaryPanel({ documentId }: TextSummaryPanelProps) {
                 <button
                   type="button"
                   onClick={copySummary}
-                  className="font-mono text-[11px] text-[#6B6A72] transition-colors hover:text-[#F0EEE9]"
+                  className="font-sans text-xs text-[#8C8A94] transition-colors hover:text-[#C9A227]"
                 >
                   {copied ? "Copied" : "Copy"}
                 </button>
                 <button
                   type="button"
                   onClick={regenerate}
-                  className="font-mono text-[11px] text-[#6B6A72] transition-colors hover:text-[#F0EEE9]"
+                  className="font-sans text-xs text-[#8C8A94] transition-colors hover:text-[#C9A227]"
                 >
                   Regenerate
                 </button>
               </div>
-              <p className="font-mono text-[10px] text-[#6B6A72]">
+              <p className="font-sans text-xs text-[#8C8A94]">
                 Generated {new Date(data.generatedAt).toLocaleString()}
               </p>
             </div>

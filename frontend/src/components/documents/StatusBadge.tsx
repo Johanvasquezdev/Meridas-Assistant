@@ -33,8 +33,8 @@ const STATUS_CONFIG: Record<
     label: "Failed",
   },
   UPLOADING: {
-    color: "text-purple-400",
-    dotClass: "bg-purple-500",
+    color: "text-[#C9A227]",
+    dotClass: "bg-[#C9A227]",
     label: "Uploading",
     spinner: true,
   },
@@ -42,20 +42,20 @@ const STATUS_CONFIG: Record<
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] ?? {
-    color: "text-[#6B6A72]",
-    dotClass: "bg-[#6B6A72]",
+    color: "text-[#8C8A94]",
+    dotClass: "bg-[#8C8A94]",
     label: status,
   };
 
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]",
+        "flex items-center gap-1.5 font-sans text-xs font-semibold",
         config.color
       )}
     >
       {config.spinner ? (
-        <Loader2 size={10} className="animate-spin" />
+        <Loader2 size={11} className="animate-spin text-[#C9A227]" />
       ) : (
         <div className={cn("size-1.5 rounded-full", config.dotClass)} />
       )}

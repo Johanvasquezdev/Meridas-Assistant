@@ -11,7 +11,7 @@ interface KnowledgeHealthProps {
 export function KnowledgeHealth({ data, isLoading }: KnowledgeHealthProps) {
   if (isLoading) {
     return (
-      <div className="h-[250px] animate-pulse rounded-[2px] border border-border bg-card" />
+      <div className="h-[250px] animate-pulse rounded-[16px] border border-[#2A2832] bg-[#1C1B20]" />
     );
   }
 
@@ -20,84 +20,83 @@ export function KnowledgeHealth({ data, isLoading }: KnowledgeHealthProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative rounded-[2px] border border-border bg-card p-8 backdrop-blur-xl overflow-hidden"
+      className="group relative rounded-[16px] border border-[#2A2832] bg-[#1C1B20] p-7 shadow-xl overflow-hidden"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C9A227]/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-6">
-          <div className="relative flex size-32 items-center justify-center">
+          <div className="relative flex size-28 items-center justify-center shrink-0">
             <svg className="absolute size-full -rotate-90 transform">
               <circle
-                cx="64"
-                cy="64"
-                r="58"
-                stroke="currentColor"
-                strokeWidth="10"
+                cx="56"
+                cy="56"
+                r="48"
+                stroke="#2A2832"
+                strokeWidth="8"
                 fill="transparent"
-                className="text-muted"
               />
               <motion.circle
-                cx="64"
-                cy="64"
-                r="58"
+                cx="56"
+                cy="56"
+                r="48"
                 stroke="currentColor"
-                strokeWidth="10"
+                strokeWidth="8"
                 fill="transparent"
-                strokeDasharray={364.4}
-                initial={{ strokeDashoffset: 364.4 }}
-                animate={{ strokeDashoffset: 364.4 - (364.4 * score) / 100 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
+                strokeDasharray={301.6}
+                initial={{ strokeDashoffset: 301.6 }}
+                animate={{ strokeDashoffset: 301.6 - (301.6 * score) / 100 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
                 className={`${
-                  score > 80 ? "text-emerald-500" : score > 50 ? "text-amber-500" : "text-rose-500"
+                  score > 80 ? "text-[#C9A227]" : score > 50 ? "text-amber-500" : "text-[#9E1B32]"
                 }`}
               />
             </svg>
             <div className="text-center">
-              <span className="text-3xl font-bold text-foreground">{score}</span>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Health</p>
+              <span className="font-sans text-2xl font-bold text-[#F7F3EA]">{score}</span>
+              <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-[#8C8A94]">Score</p>
             </div>
           </div>
 
           <div>
-            <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Knowledge Health Score</h3>
-            <p className="max-w-md text-sm text-muted-foreground">
-              A comprehensive metric based on document processing success, content coverage, and retrieval accuracy.
+            <h3 className="text-lg font-bold text-[#F7F3EA] tracking-tight">Knowledge Base Health</h3>
+            <p className="max-w-md text-xs text-[#8C8A94] mt-1 leading-relaxed">
+              Overall reliability score based on verified document coverage, search accuracy, and policy updates.
             </p>
             
-            <div className="mt-4 flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 rounded-[2px] bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            <div className="mt-3 flex flex-wrap gap-2.5">
+              <div className="flex items-center gap-1.5 rounded-[6px] bg-[#C9A227]/10 border border-[#C9A227]/30 px-2.5 py-1 font-sans text-xs font-semibold text-[#C9A227]">
                 <ShieldCheck className="size-3" />
-                {data?.readyDocs || 0} Ready
+                {data?.readyDocs || 0} Documents Ready
               </div>
-              <div className="flex items-center gap-2 rounded-[2px] bg-amber-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              <div className="flex items-center gap-1.5 rounded-[6px] bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 font-sans text-xs font-semibold text-amber-400">
                 <RefreshCw className="size-3 animate-spin" />
                 {data?.totalDocs - data?.readyDocs - data?.failedDocs || 0} Processing
               </div>
-              <div className="flex items-center gap-2 rounded-[2px] bg-rose-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              <div className="flex items-center gap-1.5 rounded-[6px] bg-[#9E1B32]/15 border border-[#9E1B32]/40 px-2.5 py-1 font-sans text-xs font-semibold text-[#BA243F]">
                 <AlertCircle className="size-3" />
-                {data?.failedDocs || 0} Issues
+                {data?.failedDocs || 0} Failed
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 rounded-[2px] border border-border bg-muted/30 p-6 lg:w-72">
+        <div className="flex flex-col gap-2 rounded-[12px] border border-[#2A2832] bg-[#151417] p-5 lg:w-72">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coverage</span>
-            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{coverage}%</span>
+            <span className="font-sans text-xs font-semibold text-[#8C8A94]">Topic Coverage</span>
+            <span className="font-sans text-xs font-bold text-[#C9A227]">{coverage}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-[2px] bg-muted">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#2A2832]">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${coverage}%` }}
-              transition={{ duration: 1, delay: 0.5 }}
-              className="h-full bg-emerald-500"
+              transition={{ duration: 1, delay: 0.3 }}
+              className="h-full bg-[#C9A227]"
             />
           </div>
-          <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground italic">
-            Knowledge is currently covering {coverage}% of your configured domains.
+          <p className="mt-1 font-sans text-xs leading-relaxed text-[#8C8A94]">
+            {coverage}% of operational topics covered by uploaded documents.
           </p>
         </div>
       </div>

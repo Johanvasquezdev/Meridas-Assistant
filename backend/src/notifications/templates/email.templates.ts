@@ -16,24 +16,26 @@ export const baseTemplate = (content: string, title: string): string => {
     body {
       margin: 0;
       padding: 0;
-      background-color: #0C0C0F;
-      font-family: 'IBM Plex Sans', Arial, sans-serif;
-      color: #F0EEE9;
+      background-color: #151417;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #F7F3EA;
       -webkit-font-smoothing: antialiased;
     }
     
     .wrapper {
       width: 100%;
       table-layout: fixed;
-      background-color: #0C0C0F;
+      background-color: #151417;
       padding: 40px 0;
     }
     
     .container {
       max-width: 600px;
       margin: 0 auto;
-      background-color: #131318;
-      border: 1px solid #1E1E26;
+      background-color: #1C1B20;
+      border: 1px solid #2A2832;
+      border-radius: 12px;
+      overflow: hidden;
     }
     
     .content {
@@ -46,10 +48,12 @@ export const baseTemplate = (content: string, title: string): string => {
     }
     
     .logo {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
-      color: #00D4FF;
+      letter-spacing: 2px;
+      color: #C9A227;
       text-decoration: none;
+      text-transform: uppercase;
     }
     
     h1 {
@@ -57,19 +61,19 @@ export const baseTemplate = (content: string, title: string): string => {
       font-weight: 700;
       margin-top: 0;
       margin-bottom: 20px;
-      color: #F0EEE9;
+      color: #F7F3EA;
     }
     
     p {
-      font-size: 16px;
+      font-size: 15px;
       line-height: 1.6;
       margin-top: 0;
       margin-bottom: 20px;
-      color: #F0EEE9;
+      color: #F7F3EA;
     }
     
     .muted {
-      color: #6B6A72;
+      color: #8C8A94;
     }
     
     .button-container {
@@ -79,26 +83,29 @@ export const baseTemplate = (content: string, title: string): string => {
     
     .button {
       display: inline-block;
-      background-color: #00D4FF;
-      color: #0C0C0F !important;
+      background-color: #9E1B32;
+      color: #F7F3EA !important;
       padding: 12px 24px;
       text-decoration: none;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 1px;
+      border-radius: 8px;
+      border: 1px solid rgba(201, 162, 39, 0.4);
     }
     
     .footer {
       padding: 20px 40px;
       text-align: center;
       font-size: 12px;
-      color: #6B6A72;
-      border-top: 1px solid #1E1E26;
+      color: #8C8A94;
+      border-top: 1px solid #2A2832;
+      background-color: #151417;
     }
     
     .footer a {
-      color: #6B6A72;
+      color: #C9A227;
       text-decoration: underline;
     }
   </style>
@@ -108,12 +115,12 @@ export const baseTemplate = (content: string, title: string): string => {
     <div class="container">
       <div class="content">
         <div class="header">
-          <a href="https://supportmind.ai" class="logo">SupportMind AI</a>
+          <a href="https://meridas.ai" class="logo">MERIDAS</a>
         </div>
         ${content}
       </div>
       <div class="footer">
-        SupportMind AI &middot; <a href="https://supportmind.ai/unsubscribe">Unsubscribe</a> &middot; <a href="https://supportmind.ai/privacy">Privacy Policy</a>
+        MERIDAS Operational Intelligence &middot; <a href="https://meridas.ai/privacy">Privacy Policy</a> &middot; <a href="https://meridas.ai/terms">Terms of Service</a>
       </div>
     </div>
   </div>

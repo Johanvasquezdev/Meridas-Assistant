@@ -53,12 +53,12 @@ function parseMetric(value: string): number | null {
 
 function InsightCard({ insight, index }: { insight: DocumentInsight; index: number }) {
   const borderByType: Record<InsightType, string> = {
-    METRIC: "border-l-[#7c3aed]",
-    FACT: "border-l-[#1a1a2e]",
-    DATE: "border-l-[#22c55e]",
-    PERSON: "border-l-[#1a1a2e]",
-    PROCESS: "border-l-[#7c3aed]",
-    REQUIREMENT: "border-l-[#FF4545]",
+    METRIC: "border-l-[#C9A227]",
+    FACT: "border-l-[#2A2832]",
+    DATE: "border-l-[#C9A227]",
+    PERSON: "border-l-[#9E1B32]",
+    PROCESS: "border-l-[#C9A227]",
+    REQUIREMENT: "border-l-[#9E1B32]",
   };
 
   return (
@@ -67,62 +67,62 @@ function InsightCard({ insight, index }: { insight: DocumentInsight; index: numb
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.15 }}
       className={cn(
-        "rounded-[4px] border border-l-2 border-[#1a1a2e] bg-[#0d0d1a] px-5 py-4 transition-colors hover:border-[#7c3aed]",
+        "rounded-[8px] border border-l-2 border-[#2A2832] bg-[#151417] px-5 py-4 transition-colors hover:border-[#C9A227]/50",
         borderByType[insight.type],
       )}
     >
       {insight.type === "METRIC" ? (
         <div className="space-y-2">
           <div className="flex items-end gap-2">
-            <span className="font-mono text-[40px] leading-none text-[#7c3aed]">
+            <span className="font-sans text-3xl font-bold leading-none text-[#C9A227]">
               {insight.value}
             </span>
             {insight.unit && (
-              <span className="pb-1 font-mono text-[14px] text-[#6B6A72]">
+              <span className="pb-1 font-sans text-xs text-[#8C8A94]">
                 {insight.unit}
               </span>
             )}
           </div>
-          <p className="text-[12px] text-[#6B6A72]">{insight.label}</p>
+          <p className="font-sans text-xs text-[#8C8A94]">{insight.label}</p>
           {insight.context && (
-            <p className="text-[11px] italic text-[#6B6A72]">
+            <p className="font-sans text-[11px] italic text-[#8C8A94]">
               {insight.context}
             </p>
           )}
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="font-mono text-[10px] uppercase text-[#6B6A72]">
+          <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-[#8C8A94]">
             {insight.label}
           </p>
           <div className="flex items-start gap-2">
             {insight.type === "DATE" && (
-              <Calendar className="mt-0.5 size-3.5 shrink-0 text-[#7c3aed]" />
+              <Calendar className="mt-0.5 size-3.5 shrink-0 text-[#C9A227]" />
             )}
             {insight.type === "PERSON" && (
-              <User className="mt-0.5 size-3.5 shrink-0 text-[#7c3aed]" />
+              <User className="mt-0.5 size-3.5 shrink-0 text-[#9E1B32]" />
             )}
             {insight.type === "PROCESS" && (
-              <ArrowRight className="mt-0.5 size-3 shrink-0 text-[#7c3aed]" />
+              <ArrowRight className="mt-0.5 size-3 shrink-0 text-[#C9A227]" />
             )}
             {insight.type === "REQUIREMENT" && (
-              <AlertCircle className="mt-0.5 size-3 shrink-0 text-[#FF4545]" />
+              <AlertCircle className="mt-0.5 size-3 shrink-0 text-red-400" />
             )}
             <p
               className={cn(
-                "text-[#F0EEE9]",
-                insight.type === "DATE" && "text-[16px] font-bold",
-                insight.type === "PERSON" && "text-[14px] font-bold",
+                "text-[#F7F3EA] font-sans",
+                insight.type === "DATE" && "text-base font-bold",
+                insight.type === "PERSON" && "text-sm font-bold",
                 insight.type !== "DATE" &&
                   insight.type !== "PERSON" &&
-                  "text-[13px]",
+                  "text-xs leading-relaxed",
               )}
             >
               {insight.value}
             </p>
           </div>
           {insight.context && (
-            <p className="text-[11px] italic text-[#6B6A72]">
+            <p className="font-sans text-[11px] italic text-[#8C8A94]">
               {insight.context}
             </p>
           )}
@@ -167,7 +167,7 @@ export function InsightsPanel({ documentId }: { documentId: string }) {
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="overflow-hidden rounded-b-[4px] border border-t-0 border-[#1a1a2e] bg-[#080810]"
+      className="overflow-hidden rounded-b-[10px] border border-t-0 border-[#2A2832] bg-[#1C1B20]"
     >
       <div className="space-y-5 px-6 py-5">
         {isLoading && (
@@ -175,41 +175,42 @@ export function InsightsPanel({ documentId }: { documentId: string }) {
             {[0, 1, 2, 3, 4, 5].map((item) => (
               <div
                 key={item}
-                className="h-32 animate-pulse rounded-[4px] border border-[#1a1a2e] bg-[#0d0d1a]"
+                className="h-32 animate-pulse rounded-[8px] border border-[#2A2832] bg-[#151417]"
               />
             ))}
           </div>
         )}
 
         {!isLoading && error && (
-          <p className="text-sm text-[#FF4545]">
+          <p className="font-sans text-xs text-red-400">
             Failed to extract insights. Try again.
           </p>
         )}
 
         {!isLoading && data?.length === 0 && (
-          <p className="text-[14px] text-[#6B6A72]">
+          <p className="text-sm font-semibold text-[#8C8A94]">
             No key insights found in this document.
           </p>
         )}
 
         {!isLoading && chartData.length >= 3 && (
-          <div className="hidden h-64 rounded-[4px] border border-[#1a1a2e] bg-[#0d0d1a] p-4 md:block">
+          <div className="hidden h-64 rounded-[8px] border border-[#2A2832] bg-[#151417] p-4 md:block">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid stroke="#1a1a2e" vertical={false} />
-                <XAxis dataKey="label" stroke="#6B6A72" fontSize={11} />
-                <YAxis stroke="#6B6A72" fontSize={11} />
+                <CartesianGrid stroke="#2A2832" vertical={false} />
+                <XAxis dataKey="label" stroke="#8C8A94" fontSize={11} />
+                <YAxis stroke="#8C8A94" fontSize={11} />
                 <Tooltip
-                  cursor={{ fill: "#12121f" }}
+                  cursor={{ fill: "#222027" }}
                   contentStyle={{
-                    background: "#0d0d1a",
-                    border: "1px solid #1a1a2e",
-                    borderRadius: 4,
-                    color: "#F0EEE9",
+                    background: "#151417",
+                    border: "1px solid #2A2832",
+                    borderRadius: 6,
+                    color: "#F7F3EA",
+                    fontSize: 12,
                   }}
                 />
-                <Bar dataKey="value" fill="#7c3aed" radius={2} />
+                <Bar dataKey="value" fill="#C9A227" radius={4} />
               </BarChart>
             </ResponsiveContainer>
           </div>

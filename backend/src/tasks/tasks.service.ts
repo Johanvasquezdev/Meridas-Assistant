@@ -46,8 +46,8 @@ export class TasksService {
         for (const user of sub.tenant.users) {
           const name = user.email.split('@')[0]; // Fallback name
           await this.notifications.sendTrialEndingEmail(user.email, name, diffDays);
-          if (user.phone) {
-            await this.notifications.sendTrialEndingSMS(user.phone, diffDays);
+          if ((user as any).phone) {
+            await this.notifications.sendTrialEndingSMS((user as any).phone, diffDays);
           }
         }
       }

@@ -5,28 +5,28 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
-    question: "How does SupportMind AI learn about my business?",
-    answer: "SupportMind AI ingests your documentation, FAQs, past support tickets, and knowledge base during setup. Our models then create a custom AI agent that understands your products and brand voice.",
+    question: "What does \"Evidence first. Answer second.\" mean in practice?",
+    answer: "Unlike traditional generative chatbots that prioritize generating fluent conversational text regardless of factual basis, Meridas operates with mandatory proof gating. It retrieves verified passages from your uploaded documentation first; if no direct evidence is found, it refuses to speculate.",
   },
   {
-    question: "Can I customize the AI responses?",
-    answer: "Yes. You can tune tone, escalation rules, allowed sources, and response style to match your brand requirements.",
+    question: "How do inline citations work?",
+    answer: "Every response embeds interactive citation tags [1], [2] linked to exact document sections, pages, and similarity confidence scores. Users and compliance officers can click any citation to view the underlying source excerpt.",
   },
   {
-    question: "What happens if the AI doesn't know the answer?",
-    answer: "The agent will refuse to hallucinate, citing only the context it has, or escalate to a human based on your configured escalation policy.",
+    question: "Which AI models power Meridas?",
+    answer: "Meridas is architected to utilize precision RAG models including Cohere Command R+, Google Gemini, and Groq LLaMA models, optimized specifically for grounding, citation extraction, and sub-second latency.",
   },
   {
-    question: "Is my customer data secure?",
-    answer: "Data is isolated by tenant and protected with AES-256 encryption, access controls, and audit-friendly storage patterns.",
+    question: "Can our proprietary documents be seen by other companies?",
+    answer: "No. Meridas uses strict multi-tenant isolation. Each enterprise customer has isolated vector namespaces, isolated database partitions, and dedicated encryption keys. Your documentation is never exposed or used to train public models.",
   },
   {
-    question: "How long does it take to set up?",
-    answer: "Most of our customers get their custom AI agent up and running in under 10 minutes — no engineering required.",
+    question: "How is Meridas integrated into our existing website or portal?",
+    answer: "You can embed our lightweight JavaScript widget into any web platform with one line of code, or connect your customer portal directly via our authenticated REST and WebSocket APIs.",
   },
   {
-    question: "Can I try it before committing?",
-    answer: "Yes, we offer a 14-day free trial on all plans with full access to all features so you can see the value immediately.",
+    question: "Is voice support included?",
+    answer: "Yes. Meridas integrates low-latency ElevenLabs speech synthesis and transcription, allowing real-time voice interactions backed by the same rigorous evidence verification.",
   },
 ];
 
@@ -34,30 +34,40 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-[120px] border-b border-[#1a1a2e]">
-      <div className="mx-auto max-w-[1200px] px-6">
+    <section id="faq" className="py-[120px] border-b border-[#2A2832] bg-[#151417]">
+      <div className="mx-auto max-w-[1240px] px-6">
         
         {/* Header */}
         <div className="mb-16">
-          <h2 className="font-sans text-[48px] font-bold text-[#F0EEE9] mb-4">Common Questions</h2>
-          <p className="font-sans text-[16px] text-[#6B6A72]">
-            Everything you need to know about SupportMind AI
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] border border-[#C9A227]/30 bg-[#9E1B32]/10 mb-4">
+            <span className="font-sans text-xs uppercase tracking-wider text-[#C9A227] font-semibold">
+              FAQ
+            </span>
+          </div>
+          <h2 className="font-sans text-[40px] sm:text-[48px] font-bold text-[#F7F3EA] mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="font-sans text-[16px] text-[#8C8A94] max-w-[560px]">
+            Key insights on how Meridas provides grounded intelligence for mission-critical operations.
           </p>
         </div>
 
         {/* Accordion */}
-        <div className="border-t border-[#1a1a2e]">
+        <div className="border-t border-[#2A2832]">
           {faqs.map((faq, index) => (
-            <div key={index} className="border-b border-[#1a1a2e]">
+            <div key={index} className="border-b border-[#2A2832]">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="flex w-full items-center justify-between py-6 text-left"
+                className="flex w-full items-center justify-between py-6 text-left group"
               >
-                <span className="font-sans text-[15px] font-bold text-[#F0EEE9]">{faq.question}</span>
-                <span className="font-mono text-[20px] text-[#7c3aed]">
+                <span className="font-sans text-[16px] font-bold text-[#F7F3EA] group-hover:text-[#C9A227] transition-colors">
+                  {faq.question}
+                </span>
+                <span className="font-mono text-[22px] text-[#C9A227] shrink-0 ml-4">
                   {openIndex === index ? "−" : "+"}
                 </span>
               </button>
+
               <AnimatePresence>
                 {openIndex === index && (
                   <motion.div
@@ -67,7 +77,7 @@ export function FAQ() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <p className="pb-6 font-sans text-[14px] text-[#6B6A72] leading-relaxed max-w-[800px]">
+                    <p className="pb-6 font-sans text-[14px] leading-relaxed text-[#8C8A94] max-w-[800px]">
                       {faq.answer}
                     </p>
                   </motion.div>

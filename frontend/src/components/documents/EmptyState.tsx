@@ -23,25 +23,24 @@ export function EmptyState({
 
   if (!hasAnyDocuments && !isFiltered) {
     return (
-      <div className="flex flex-col items-center justify-center gap-6 rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] py-24 text-center">
-        <div className="flex size-16 items-center justify-center rounded-[2px] border border-[#1a1a2e] bg-[#12121f] text-[#6B6A72]">
-          <Upload size={32} />
+      <div className="flex flex-col items-center justify-center gap-6 rounded-[16px] border border-[#2A2832] bg-[#1C1B20] py-24 text-center shadow-xl">
+        <div className="flex size-14 items-center justify-center rounded-[10px] border border-[#2A2832] bg-[#151417] text-[#C9A227]">
+          <Upload size={28} />
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-bold tracking-tight text-[#F0EEE9]">
-            Your Knowledge Base is empty
+          <h3 className="text-lg font-bold tracking-tight text-[#F7F3EA]">
+            Knowledge Vault is Empty
           </h3>
-          <p className="mx-auto max-w-sm text-sm text-[#6B6A72]">
-            Upload documentation, FAQs, and guides. SupportMind will learn from
-            your docs and answer questions grounded in your content.
+          <p className="mx-auto max-w-sm text-xs text-[#8C8A94] leading-relaxed">
+            Upload company policies, operating manuals, or handbooks. MERIDAS indexes your files so your AI assistant can accurately answer questions with direct citations.
           </p>
         </div>
         <button
           onClick={onUploadClick}
-          className="flex items-center gap-2 rounded-[2px] bg-[#7c3aed] px-8 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-[#7c3aed]/20 transition-all hover:bg-[#6d28d9] active:scale-95"
+          className="flex items-center gap-2 rounded-[8px] bg-[#9E1B32] px-6 py-2.5 font-sans text-xs font-bold text-[#F7F3EA] border border-[#C9A227]/30 shadow-lg shadow-[#9E1B32]/25 transition-all hover:bg-[#BA243F] active:scale-95"
         >
-          <Plus size={16} />
-          Upload Your First Document
+          <Plus size={14} />
+          Upload Document
         </button>
       </div>
     );
@@ -52,23 +51,23 @@ export function EmptyState({
     statusFilter !== "ALL" ? statusFilter.toLowerCase() : "matching";
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] py-20 text-center">
-      <div className="flex size-14 items-center justify-center rounded-[2px] border border-[#1a1a2e] bg-[#12121f] text-[#6B6A72]">
-        <Filter size={24} />
+    <div className="flex flex-col items-center justify-center gap-5 rounded-[16px] border border-[#2A2832] bg-[#1C1B20] py-20 text-center shadow-xl">
+      <div className="flex size-12 items-center justify-center rounded-[10px] border border-[#2A2832] bg-[#151417] text-[#C9A227]">
+        <Filter size={20} />
       </div>
       <div className="space-y-1.5">
-        <h3 className="text-base font-bold text-[#F0EEE9]">
+        <h3 className="text-sm font-bold text-[#F7F3EA]">
           {searchQuery
             ? `No ${filterLabel} documents match "${searchQuery}"`
             : `No ${filterLabel} documents`}
         </h3>
-        <p className="text-sm text-[#6B6A72]">
+        <p className="text-xs text-[#8C8A94]">
           Try adjusting your filters or search terms.
         </p>
       </div>
       <button
         onClick={onClearFilters}
-        className="rounded-[2px] border border-[#1a1a2e] px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#6B6A72] transition-all hover:border-[#7c3aed]/40 hover:text-[#F0EEE9]"
+        className="rounded-[6px] border border-[#2A2832] bg-[#151417] px-5 py-2 font-sans text-xs font-semibold text-[#8C8A94] transition-all hover:border-[#C9A227]/40 hover:text-[#C9A227]"
       >
         Clear Filters
       </button>

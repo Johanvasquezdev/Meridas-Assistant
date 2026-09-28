@@ -11,7 +11,7 @@ interface VoiceSearchBarProps {
 }
 
 export function VoiceSearchBar({ onResults }: VoiceSearchBarProps) {
-  const { state, transcript, lastBlob, error, start, stop, reset, secondsRemaining } = useVoiceInput();
+  const { state, lastBlob, error, start, stop, secondsRemaining } = useVoiceInput();
   const { getToken } = useAuth();
 
   useEffect(() => {
@@ -31,36 +31,29 @@ export function VoiceSearchBar({ onResults }: VoiceSearchBarProps) {
     performSearch();
   }, [state, lastBlob, getToken, onResults]);
 
-  // Modified logic: VoiceSearchBar will use a separate mechanism if it needs the blob directly,
-  // or I'll just use the transcript and call RagService if I can.
-  // But the prompt specifically says "On done: call voiceSearch(blob, token), then onResults()"
-  
-  // I'll update useVoiceInput to return the blob.
-  
   const getStatusText = () => {
     switch (state) {
-      case 'idle': return 'Search your documents by voice';
-      case 'recording': return 'Listening…';
-      case 'transcribing': return 'Searching…';
-      case 'error': return error || 'An error occurred';
+      case 'idle': return 'Search knowledge base by voice...';
+      case 'recording': return 'Listening...';
+      case 'transcribing': return 'Searching verified documents...';
+      case 'error': return error || 'Voice search failed';
       default: return '';
     }
   };
 
   return (
     <div 
-      className="flex items-center gap-4 w-full bg-[#131318] border border-[#1E1E26] p-4 transition-all duration-200"
-      style={{ borderRadius: '2px' }}
+      className="flex items-center gap-3.5 w-full bg-[#1C1B20] border border-[#2A2832] rounded-[10px] p-3 transition-all duration-200"
     >
       <VoiceMicButton 
         state={state} 
         onStart={start} 
         onStop={stop} 
         secondsRemaining={secondsRemaining}
-        size={24}
+        size={36}
       />
       
-      <div className={`font-mono text-[12px] flex-1 ${state === 'error' ? 'text-[#FF4545]' : 'text-[#6B6A72]'}`}>
+      <div className={`font-sans text-xs flex-1 ${state === 'error' ? 'text-red-400' : 'text-[#8C8A94]'}`}>
         {getStatusText()}
       </div>
     </div>

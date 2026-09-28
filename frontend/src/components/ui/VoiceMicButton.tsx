@@ -3,6 +3,7 @@
 import React from 'react';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { VoiceState } from '@/hooks/useVoiceInput';
+import { cn } from '@/lib/utils';
 
 interface VoiceMicButtonProps {
   state: VoiceState;
@@ -18,7 +19,7 @@ export function VoiceMicButton({
   onStart, 
   onStop, 
   secondsRemaining, 
-  size = 28,
+  size = 44,
   disabled = false
 }: VoiceMicButtonProps) {
   const isIdle = state === 'idle';
@@ -29,44 +30,58 @@ export function VoiceMicButton({
 
   return (
     <div className="relative inline-flex flex-col items-center">
-      {isRecording && secondsRemaining !== undefined && secondsRemaining <= 10 && (
-        <div className="absolute -top-6 font-mono text-[10px] text-[#FF4545] animate-pulse">
+      {isRecording && secondsRemaining !== undefined && secondsRemaining <= 15 && (
+        <div className="absolute -top-6 font-sans text-[11px] font-semibold text-[#C9A227] animate-pulse">
           0:{secondsRemaining.toString().padStart(2, '0')}
         </div>
       )}
       
       <button
+        type="button"
         onClick={isRecording ? onStop : onStart}
         disabled={disabled || isRequesting || isTranscribing}
-        title={state.charAt(0).toUpperCase() + state.slice(1)}
-        className={`
-          relative flex items-center justify-center transition-all duration-200
-          ${isRecording ? 'border-[#FF4545]' : isIdle ? 'border-[#1E1E26]' : 'border-[#1E1E26]'}
-          ${isRecording ? 'bg-[#FF4545]/10' : 'bg-transparent'}
-          group
-        `}
+        title={
+          isRecording
+            ? 'Stop Recording'
+            : isTranscribing
+            ? 'Transcribing Audio...'
+            : 'Ask with Voice'
+        }
+        className={cn(
+          "relative flex items-center justify-center rounded-[10px] border transition-all duration-200 active:scale-95 group",
+          isRecording &&
+            "border-[#9E1B32] bg-[#9E1B32]/20 text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/30",
+          (isRequesting || isTranscribing) &&
+            "border-[#C9A227]/40 bg-[#1C1B20] text-[#C9A227]",
+          isError &&
+            "border-red-500/40 bg-red-500/10 text-red-400",
+          isIdle &&
+            "border-[#2A2832] bg-[#1C1B20] text-[#8C8A94] hover:border-[#C9A227]/50 hover:text-[#F7F3EA] hover:bg-[#222027]",
+          disabled && "opacity-40 cursor-not-allowed"
+        )}
         style={{ 
           width: `${size}px`, 
           height: `${size}px`, 
-          borderWidth: '1px',
-          borderRadius: '2px'
         }}
       >
         {isRecording && (
-          <div className="absolute inset-0 border border-[#FF4545] animate-ping opacity-50" style={{ borderRadius: '2px' }} />
+          <span className="absolute inset-0 rounded-[10px] border border-[#9E1B32] animate-ping opacity-40 pointer-events-none" />
         )}
 
-        {(isRequesting || isTranscribing) ? (
+        {isRequesting || isTranscribing ? (
           <Loader2 
-            size={size * 0.6} 
-            className={`animate-spin ${isTranscribing ? 'text-[#00D4FF]' : 'text-[#6B6A72]'}`} 
+            size={Math.round(size * 0.45)} 
+            className="animate-spin text-[#C9A227]" 
           />
         ) : isError ? (
-          <MicOff size={size * 0.6} className="text-[#FF4545]" />
+          <MicOff size={Math.round(size * 0.45)} className="text-red-400" />
         ) : (
           <Mic 
-            size={size * 0.6} 
-            className={`transition-colors ${isRecording ? 'text-[#FF4545]' : 'text-[#6B6A72] group-hover:text-[#F0EEE9]'}`} 
+            size={Math.round(size * 0.45)} 
+            className={cn(
+              "transition-colors",
+              isRecording ? "text-[#F7F3EA]" : "text-[#8C8A94] group-hover:text-[#F7F3EA]"
+            )} 
           />
         )}
       </button>

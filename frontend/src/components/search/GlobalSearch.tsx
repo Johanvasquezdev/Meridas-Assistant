@@ -124,27 +124,27 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           onMouseDown={handleOverlayClick}
         >
           <motion.div
-            className="w-full max-w-[640px] overflow-hidden rounded-[4px] border border-[#1a1a2e] bg-[#0d0d1a]"
+            className="w-full max-w-[640px] overflow-hidden rounded-[12px] border border-[#2A2832] bg-[#1C1B20] shadow-2xl"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.1 }}
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center gap-3 border-b border-[#1a1a2e] px-4 py-3">
-              <Search size={16} className="text-[#7c3aed]" />
+            <div className="flex items-center gap-3 border-b border-[#2A2832] px-4 py-3">
+              <Search size={16} className="text-[#C9A227]" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleInputKeyDown}
-                placeholder="Search your knowledge base..."
-                className="h-9 flex-1 bg-transparent text-[16px] text-[#F0EEE9] outline-none placeholder:text-[#6B6A72]"
+                placeholder="Search knowledge vault..."
+                className="h-9 flex-1 bg-transparent font-sans text-sm text-[#F7F3EA] outline-none placeholder:text-[#8C8A94]"
               />
               <button
                 type="button"
                 onClick={close}
-                className="flex size-8 items-center justify-center rounded-[2px] text-[#6B6A72] transition-colors hover:bg-[#12121f] hover:text-[#F0EEE9]"
+                className="flex size-8 items-center justify-center rounded-[6px] text-[#8C8A94] transition-colors hover:bg-[#151417] hover:text-[#F7F3EA]"
                 aria-label="Close search"
               >
                 <X size={16} />
@@ -159,7 +159,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       type="button"
                       key={suggestion}
                       onClick={() => setQuery(suggestion)}
-                      className="block w-full rounded-[2px] px-3 py-2 text-left font-mono text-[13px] text-[#6B6A72] hover:bg-[#12121f]"
+                      className="block w-full rounded-[6px] px-3 py-2 text-left font-sans text-xs text-[#8C8A94] hover:bg-[#222027]"
                     >
                       {suggestion}
                     </button>
@@ -172,7 +172,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   {[0, 1, 2].map((item) => (
                     <div
                       key={item}
-                      className="h-14 animate-pulse rounded-[2px] bg-[#12121f]"
+                      className="h-14 animate-pulse rounded-[8px] bg-[#151417]"
                     />
                   ))}
                 </div>

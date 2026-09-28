@@ -15,6 +15,7 @@ import { VoiceModule } from './voice/voice.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SearchModule } from './search/search.module';
 import { WidgetModule } from './widget/widget.module';
+import { ConflictsModule } from './conflicts/conflicts.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { WidgetModule } from './widget/widget.module';
     SearchModule,
     WidgetModule,
     ApiModule,
+    ConflictsModule,
   ],
 })
 export class AppModule {}

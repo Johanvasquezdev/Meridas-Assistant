@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AiService, AnswerMode, ConversationMessage } from '../ai/ai.service';
+import { VerificationService } from '../ai/verification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RagChunk, RagService } from '../rag/rag.service';
 import { ChatResponseDto } from './dto/chat-response.dto';
@@ -26,6 +27,9 @@ interface StreamMessageInput extends SendMessageInput {
   onDone: (result: {
     conversationId: string;
     context: RagChunk[];
+    decisionState?: 'SUPPORTED' | 'CONDITIONAL' | 'CANNOT_ESTABLISH';
+    missingEvidenceGap?: string;
+    evaluations?: any[];
     usage: { inputTokens: number; outputTokens: number; totalTokens: number };
   }) => void;
   onError: (error: Error) => void;
@@ -45,6 +49,7 @@ export class ChatService {
     private readonly prisma: PrismaService,
     private readonly ragService: RagService,
     private readonly aiService: AiService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   // ─── Send (non-streaming) ─────────────────────────────────────────────────
@@ -65,19 +70,43 @@ export class ChatService {
     ]);
 
     const startTime = Date.now();
-    const aiResponse = await this.aiService.generateResponse({
+
+    // Deterministic Meridas Evidence Verification
+    const verification = await this.verificationService.evaluateEvidenceAndAnswer(
       message,
       context,
-      history,
-      mode: input.mode ?? 'answer',
-    });
+      'LOW',
+    );
+
+    let aiResponse: {
+      answer: string;
+      context: RagChunk[];
+      usage: { inputTokens: number; outputTokens: number; totalTokens: number };
+    };
+
+    if (verification.decisionState === 'CANNOT_ESTABLISH' && verification.evaluations.length === 0) {
+      aiResponse = {
+        answer: verification.plainAnswer,
+        context,
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+      };
+    } else {
+      aiResponse = await this.aiService.generateResponse({
+        message,
+        context,
+        history,
+        mode: input.mode ?? 'answer',
+      });
+    }
+
+    const finalAnswer = aiResponse.answer;
     const responseTimeMs = Date.now() - startTime;
 
     await this.saveMessages(
       input.tenantId,
       conversation.id,
       message,
-      aiResponse.answer,
+      finalAnswer,
     );
 
     // Auto-title on first message of a new conversation
@@ -96,8 +125,11 @@ export class ChatService {
 
     return {
       conversationId: conversation.id,
-      message: aiResponse.answer,
+      message: finalAnswer,
       context: aiResponse.context,
+      decisionState: verification.decisionState,
+      missingEvidenceGap: verification.missingEvidenceGap,
+      evaluations: verification.evaluations,
       usage: aiResponse.usage,
     };
   }
@@ -133,13 +165,21 @@ export class ChatService {
       this.ragService.retrieve(message, input.tenantId, RAG_TOP_K),
     ]);
 
-    if (context.length === 0) {
-      const fallback =
-        "I don't have enough information in the provided company knowledge base to answer that.";
+    const verification = await this.verificationService.evaluateEvidenceAndAnswer(
+      message,
+      context,
+      'LOW',
+    );
+
+    if (context.length === 0 || (verification.decisionState === 'CANNOT_ESTABLISH' && verification.evaluations.length === 0)) {
+      const fallback = verification.plainAnswer;
       input.onToken(fallback);
       input.onDone({
         conversationId: conversation.id,
         context: [],
+        decisionState: 'CANNOT_ESTABLISH',
+        missingEvidenceGap: verification.missingEvidenceGap,
+        evaluations: [],
         usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
       });
       return;
@@ -190,7 +230,14 @@ export class ChatService {
 
       await this.trackUsage(input.tenantId, usage);
 
-      input.onDone({ conversationId: conversation.id, context, usage });
+      input.onDone({
+        conversationId: conversation.id,
+        context,
+        decisionState: verification.decisionState,
+        missingEvidenceGap: verification.missingEvidenceGap,
+        evaluations: verification.evaluations,
+        usage,
+      });
     } catch (err) {
       this.logger.error(
         `Stream error: ${err instanceof Error ? err.message : 'Unknown error'}`,
@@ -382,12 +429,12 @@ export class ChatService {
     mode: AnswerMode,
   ): number {
     const systemPrompt = [
-      'You are SupportMind AI, a customer support assistant.',
+      'You are Meridas, an operational knowledge verification assistant. Evidence first, answer second.',
       'Answer only using the provided company context.',
       'If the context does not contain the answer, say you do not have enough information.',
       'Do not guess, invent policies, or use outside knowledge.',
       'When possible, cite the context number like [Context 1].',
-      'Keep answers concise, helpful, and professional.',
+      'Keep answers concise, precise, and professional.',
       mode === 'summary'
         ? 'Mode: summary. Summarize the relevant context into clear bullets, then mention the main source context numbers.'
         : mode === 'exact'

@@ -40,21 +40,21 @@ export function SearchBar({ onResults, onClear }: SearchBarProps) {
 
   return (
     <div className="relative w-full min-w-[220px]">
-      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#6B6A72]" />
+      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#8C8A94]" />
       <input
         type="text"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search your knowledge base..."
-        className="h-9 w-full rounded-[2px] border border-[#1a1a2e] bg-[#12121f] pl-9 pr-10 text-[14px] text-[#F0EEE9] outline-none placeholder:text-[#6B6A72] focus:border-[#7c3aed]/60"
+        placeholder="Search knowledge vault..."
+        className="h-9 w-full rounded-[8px] border border-[#2A2832] bg-[#1C1B20] pl-9 pr-10 font-sans text-xs text-[#F7F3EA] outline-none placeholder:text-[#8C8A94] focus:border-[#C9A227]/60"
       />
       {isLoading ? (
-        <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-[#7c3aed]" />
+        <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-[#C9A227]" />
       ) : query ? (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-[2px] text-[#6B6A72] hover:bg-[#0d0d1a] hover:text-[#F0EEE9]"
+          className="absolute right-2.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-[4px] text-[#8C8A94] hover:bg-[#151417] hover:text-[#F7F3EA]"
           aria-label="Clear search"
         >
           <X size={14} />

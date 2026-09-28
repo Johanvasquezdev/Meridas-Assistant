@@ -75,9 +75,9 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <footer className="mt-8 border-t border-border pt-8 text-center">
-        <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest opacity-50">
-          SupportMind AI • Analytics Engine v2.0
+      <footer className="mt-8 border-t border-[#2A2832] pt-8 text-center">
+        <p className="text-xs text-[#8C8A94] font-mono uppercase tracking-widest opacity-60">
+          MERIDAS • Operational Intelligence Analytics v2.0
         </p>
       </footer>
     </div>

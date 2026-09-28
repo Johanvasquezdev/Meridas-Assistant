@@ -275,13 +275,41 @@ export default function DocumentsPage() {
         });
 
         const base64Summary = res.headers["x-summary-text"] as string | undefined;
-        const summaryText = base64Summary
-          ? decodeURIComponent(escape(window.atob(base64Summary)))
-          : "Summary ready.";
+        let summaryText = "Summary ready.";
+        if (base64Summary) {
+          try {
+            const binaryString = window.atob(base64Summary);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            summaryText = new TextDecoder().decode(bytes);
+          } catch (e) {
+            console.error("Decode summary error", e);
+          }
+        }
 
-        const audioUrl = URL.createObjectURL(res.data as Blob);
-        const audio = new Audio(audioUrl);
-        audio.play();
+        const blob = res.data as Blob;
+        let playedAudio = false;
+
+        if (blob && blob.size > 100 && (blob.type.includes("audio") || blob.type.includes("mpeg"))) {
+          try {
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            await audio.play();
+            playedAudio = true;
+          } catch (playErr) {
+            console.warn("Direct audio playback failed, trying browser speech:", playErr);
+          }
+        }
+
+        // Web Speech API fallback if server audio unavailable
+        if (!playedAudio && typeof window !== "undefined" && "speechSynthesis" in window && summaryText) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(summaryText);
+          utterance.rate = 1.0;
+          window.speechSynthesis.speak(utterance);
+        }
 
         toast(summaryText);
       } catch (err: unknown) {
@@ -377,11 +405,11 @@ export default function DocumentsPage() {
       {/* ── 1. Header ── */}
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-[#F0EEE9]">
-            Knowledge Base
+          <h1 className="text-3xl font-bold tracking-tight text-[#F7F3EA]">
+            Knowledge Vault
           </h1>
-          <p className="text-sm text-[#6B6A72]">
-            Manage the documents used to ground your AI
+          <p className="text-sm text-[#8C8A94]">
+            Verified company policies, operating manuals, and standard procedures.
           </p>
         </div>
 
@@ -389,32 +417,32 @@ export default function DocumentsPage() {
           <SearchBar onResults={handleSearchResults} onClear={clearSearch} />
 
           {/* Filter */}
-          <div className="flex h-9 items-center gap-2 rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] px-3 text-[#6B6A72] transition-colors hover:border-[#7c3aed]/30">
+          <div className="flex h-9 items-center gap-2 rounded-[8px] border border-[#2A2832] bg-[#1C1B20] px-3 text-[#8C8A94] transition-colors hover:border-[#C9A227]/40">
             <Filter size={13} />
             <select
               value={statusFilter}
               onChange={(e) =>
                 setStatusFilter(e.target.value as DocumentStatus | "ALL")
               }
-              className="bg-transparent font-mono text-[10px] font-bold uppercase tracking-widest text-[#F0EEE9] outline-none cursor-pointer"
+              className="bg-transparent font-sans text-xs font-semibold text-[#F7F3EA] outline-none cursor-pointer"
             >
-              <option value="ALL">All Status</option>
-              <option value="READY">Ready</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="FAILED">Failed</option>
+              <option value="ALL" className="bg-[#1C1B20] text-[#F7F3EA]">All Status</option>
+              <option value="READY" className="bg-[#1C1B20] text-[#F7F3EA]">Ready</option>
+              <option value="PROCESSING" className="bg-[#1C1B20] text-[#F7F3EA]">Processing</option>
+              <option value="FAILED" className="bg-[#1C1B20] text-[#F7F3EA]">Failed</option>
             </select>
           </div>
 
           {/* View toggle */}
-          <div className="flex h-9 items-center rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] p-1">
+          <div className="flex h-9 items-center rounded-[8px] border border-[#2A2832] bg-[#1C1B20] p-1">
             <button
               onClick={() => setViewMode("list")}
               title="List view"
               className={cn(
-                "flex size-7 items-center justify-center rounded-[1px] transition-colors",
+                "flex size-7 items-center justify-center rounded-[6px] transition-colors",
                 viewMode === "list"
-                  ? "bg-[#12121f] text-[#F0EEE9]"
-                  : "text-[#6B6A72] hover:text-[#F0EEE9]"
+                  ? "bg-[#151417] text-[#C9A227]"
+                  : "text-[#8C8A94] hover:text-[#F7F3EA]"
               )}
             >
               <List size={15} />
@@ -423,10 +451,10 @@ export default function DocumentsPage() {
               onClick={() => setViewMode("grid")}
               title="Grid view"
               className={cn(
-                "flex size-7 items-center justify-center rounded-[1px] transition-colors",
+                "flex size-7 items-center justify-center rounded-[6px] transition-colors",
                 viewMode === "grid"
-                  ? "bg-[#12121f] text-[#F0EEE9]"
-                  : "text-[#6B6A72] hover:text-[#F0EEE9]"
+                  ? "bg-[#151417] text-[#C9A227]"
+                  : "text-[#8C8A94] hover:text-[#F7F3EA]"
               )}
             >
               <Grid size={15} />
@@ -436,10 +464,10 @@ export default function DocumentsPage() {
           {/* Upload CTA */}
           <button
             onClick={scrollToUpload}
-            className="flex h-9 items-center gap-2 rounded-[2px] bg-[#7c3aed] px-4 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-[#7c3aed]/20 transition-all hover:bg-[#6d28d9] active:scale-95"
+            className="flex h-9 items-center gap-2 rounded-[8px] bg-[#9E1B32] hover:bg-[#BA243F] border border-[#C9A227]/40 px-4 text-xs font-bold text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/25 transition-all active:scale-95"
           >
-            <Plus size={15} />
-            Upload
+            <Plus size={15} className="text-[#C9A227]" />
+            Upload Document
           </button>
         </div>
       </div>
@@ -477,14 +505,14 @@ export default function DocumentsPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="relative flex flex-col gap-1 rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] p-4 overflow-hidden"
+            className="relative flex flex-col gap-1 rounded-[10px] border border-[#2A2832] bg-[#1C1B20] p-4 overflow-hidden"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-[#1a1a2e]" />
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#6B6A72]">
+            <div className="absolute inset-x-0 top-0 h-px bg-[#2A2832]" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#8C8A94]">
               {stat.dot}
               {stat.label}
             </div>
-            <div className="font-mono text-2xl font-bold text-[#F0EEE9]">
+            <div className="font-sans text-2xl font-bold text-[#F7F3EA]">
               {stat.value}
             </div>
           </div>
@@ -498,10 +526,10 @@ export default function DocumentsPage() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="flex items-center justify-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#7c3aed]"
+            className="flex items-center justify-center gap-2 font-sans text-xs font-semibold text-[#C9A227]"
           >
-            <RefreshCw size={11} className="animate-spin" />
-            Syncing...
+            <RefreshCw size={11} className="animate-spin text-[#C9A227]" />
+            Syncing Vault...
           </motion.div>
         )}
       </AnimatePresence>
@@ -519,9 +547,9 @@ export default function DocumentsPage() {
       {/* ── 5. Document library ── */}
       {isLoading && documents.length === 0 ? (
         <div className="flex h-56 flex-col items-center justify-center gap-4">
-          <Loader2 className="size-8 animate-spin text-[#7c3aed]" />
-          <p className="font-mono text-[11px] uppercase tracking-widest text-[#6B6A72]">
-            Loading Knowledge Base...
+          <Loader2 className="size-8 animate-spin text-[#C9A227]" />
+          <p className="font-sans text-xs text-[#8C8A94]">
+            Loading Knowledge Vault...
           </p>
         </div>
       ) : filteredDocuments.length === 0 ? (
@@ -535,9 +563,9 @@ export default function DocumentsPage() {
       ) : viewMode === "list" ? (
         <div className="space-y-2">
           {/* Column headers */}
-          <div className="grid grid-cols-12 border-b border-[#1a1a2e] px-4 pb-2 text-[9px] font-bold uppercase tracking-widest text-[#6B6A72]">
+          <div className="grid grid-cols-12 border-b border-[#2A2832] px-4 pb-2 text-xs font-semibold text-[#8C8A94]">
             <div className="col-span-5">Document</div>
-            <div className="col-span-3">Processing Data</div>
+            <div className="col-span-3">Details</div>
             <div className="col-span-4 text-right">Status &amp; Actions</div>
           </div>
           <div className="space-y-1">
@@ -610,16 +638,16 @@ export default function DocumentsPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="space-y-3 rounded-[2px] border border-[#1a1a2e] bg-[#0d0d1a] p-4"
+            className="space-y-3 rounded-[10px] border border-[#2A2832] bg-[#1C1B20] p-4"
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[12px] text-[#6B6A72]">
+              <p className="font-sans text-xs font-semibold text-[#8C8A94]">
                 Search Results for &quot;{searchQuery}&quot;
               </p>
               <button
                 type="button"
                 onClick={clearSearch}
-                className="font-mono text-[11px] text-[#7c3aed] transition-colors hover:text-[#a78bfa]"
+                className="font-sans text-xs font-semibold text-[#C9A227] transition-colors hover:text-[#DFB943]"
               >
                 Clear search
               </button>

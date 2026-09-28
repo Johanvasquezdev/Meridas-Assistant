@@ -39,37 +39,37 @@ export function SourceCitations({ sources }: SourceCitationsProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group relative flex flex-col rounded-xl border border-black/5 bg-black/[0.02] p-3 transition-all hover:border-purple-500/30 hover:bg-black/[0.04] dark:border-white/5 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+            className="group relative flex flex-col rounded-[10px] border border-[#2A2832] bg-[#1C1B20] p-3 transition-all hover:border-[#C9A227]/40 hover:bg-[#222027]"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 overflow-hidden">
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-white/50 shadow-sm dark:bg-white/5">
-                  <FileText className="size-3 text-purple-600 dark:text-purple-400" />
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-[#151417] text-[#C9A227] shadow-sm">
+                  <FileText className="size-3 text-[#C9A227]" />
                 </div>
-                <span className="truncate text-[11px] font-semibold text-black/80 dark:text-white/80">
+                <span className="truncate text-xs font-semibold text-[#F7F3EA]">
                   {source.metadata?.documentTitle || "Untitled Document"}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
-                {(source.score * 100).toFixed(0)}%
+              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 font-sans text-[10px] font-bold text-emerald-400">
+                {(source.score * 100).toFixed(0)}% match
               </div>
             </div>
 
-            <p className="mt-2 line-clamp-2 text-[10px] leading-relaxed text-black/50 dark:text-white/50 italic">
+            <p className="mt-2 line-clamp-2 font-sans text-xs leading-relaxed text-[#8C8A94] italic">
               &quot;{source.text}&quot;
             </p>
 
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-[9px] font-mono text-black/30 dark:text-white/30">
+              <span className="font-sans text-[10px] font-semibold text-[#8C8A94]">
                 REF-{index + 1}
               </span>
-              <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-purple-600/60 transition-colors hover:text-purple-600 dark:text-purple-400/60 dark:hover:text-purple-400">
+              <button className="flex items-center gap-1 font-sans text-xs font-semibold text-[#C9A227] transition-colors hover:text-[#DFB943]">
                 View Source <ExternalLink size={10} />
               </button>
             </div>
             
-            {/* Hover Tooltip/Detail - Expanding on click could be added later */}
-            <div className="pointer-events-none absolute -inset-px rounded-xl border-2 border-purple-500/0 transition-all group-hover:border-purple-500/10" />
+            {/* Hover accent */}
+            <div className="pointer-events-none absolute -inset-px rounded-[10px] border border-[#C9A227]/0 transition-all group-hover:border-[#C9A227]/20" />
           </motion.div>
         ))}
       </div>

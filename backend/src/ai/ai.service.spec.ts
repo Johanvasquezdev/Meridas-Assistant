@@ -62,7 +62,7 @@ describe('AiService', () => {
         messages: expect.arrayContaining([
           expect.objectContaining({
             role: 'system',
-            content: expect.stringContaining('Answer only using the provided company context.'),
+            content: expect.stringContaining('Answer ONLY using the provided operational context and verified evidence.'),
           }),
           expect.objectContaining({
             role: 'system',
@@ -106,5 +106,82 @@ describe('AiService', () => {
     expect(contents).not.toContain('message-1');
     expect(contents).toContain('message-2');
     expect(contents).toContain('Current question');
+  });
+
+  describe('Cohere Integration', () => {
+    it('uses Cohere Client V2 with native documents when COHERE_API_KEY is configured', async () => {
+      const mockCohereChat = jest.fn().mockResolvedValue({
+        message: {
+          content: [{ type: 'text', text: 'Per policy, refunds are permitted up to 30 days.' }],
+        },
+        usage: {
+          tokens: {
+            inputTokens: 85,
+            outputTokens: 15,
+          },
+        },
+      });
+
+      const cohereService = new AiService({
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'COHERE_API_KEY') return 'test-cohere-token';
+          if (key === 'COHERE_CHAT_MODEL') return 'command-r-plus';
+          return undefined;
+        }),
+      } as unknown as ConfigService);
+
+      (cohereService as any).cohere = {
+        chat: mockCohereChat,
+      };
+
+      const result = await cohereService.generateResponse({
+        message: 'Can I get a refund?',
+        context,
+      });
+
+      expect(mockCohereChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'command-r-plus',
+          documents: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'doc-1',
+              data: expect.objectContaining({
+                snippet: 'Refunds are available within 30 days.',
+              }),
+            }),
+          ]),
+        }),
+      );
+      expect(result.answer).toBe('Per policy, refunds are permitted up to 30 days.');
+      expect(result.usage.totalTokens).toBe(100);
+    });
+
+    it('streams tokens from Cohere content-delta events', async () => {
+      async function* mockStream() {
+        yield { type: 'content-delta', delta: { message: { content: { text: 'Refunds ' } } } };
+        yield { type: 'content-delta', delta: { message: { content: { text: 'within 30 days.' } } } };
+      }
+
+      const cohereService = new AiService({
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'COHERE_API_KEY') return 'test-cohere-token';
+          return undefined;
+        }),
+      } as unknown as ConfigService);
+
+      (cohereService as any).cohere = {
+        chatStream: jest.fn().mockResolvedValue(mockStream()),
+      };
+
+      const tokens: string[] = [];
+      for await (const token of cohereService.streamResponse({
+        message: 'What is the refund window?',
+        context,
+      })) {
+        tokens.push(token);
+      }
+
+      expect(tokens.join('')).toBe('Refunds within 30 days.');
+    });
   });
 });

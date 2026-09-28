@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { RagService, RagChunk } from '../rag/rag.service';
 import { AiService, AnswerMode } from '../ai/ai.service';
+import { VerificationService } from '../ai/verification.service';
 import { SearchService, HybridSearchResult } from '../search/search.service';
 import { DocumentsService } from '../documents/documents.service';
 import { ApiChatDto } from './dto/api-chat.dto';
@@ -19,6 +20,17 @@ export interface ApiChatResponse {
   id: string;
   answer: string;
   conversationId: string;
+  decisionState: 'SUPPORTED' | 'CONDITIONAL' | 'CANNOT_ESTABLISH';
+  missingEvidenceGap?: string;
+  evaluations?: Array<{
+    claim: string;
+    passageId: string;
+    passageText: string;
+    documentTitle?: string;
+    relationship: 'SUPPORTS' | 'CONTRADICTS' | 'NEUTRAL';
+    score: number;
+    rationale: string;
+  }>;
   sources: Array<{
     documentId: string;
     documentTitle: string;
@@ -89,6 +101,7 @@ export class ApiService {
     private readonly aiService: AiService,
     private readonly searchService: SearchService,
     private readonly documentsService: DocumentsService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   // ─── Chat ──────────────────────────────────────────────────────────────────
@@ -120,13 +133,26 @@ export class ApiService {
       },
     });
 
-    // RAG + AI
+    // RAG + Evidence Verification
     const context = await this.ragService.retrieve(dto.message, tenantId, RAG_TOP_K);
-    const result = await this.aiService.generateResponse({
-      message: dto.message,
+    const verification = await this.verificationService.evaluateEvidenceAndAnswer(
+      dto.message,
       context,
-      mode,
-    });
+      'LOW',
+    );
+
+    let answer = verification.plainAnswer;
+    let usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+
+    if (verification.decisionState !== 'CANNOT_ESTABLISH' || verification.evaluations.length > 0) {
+      const result = await this.aiService.generateResponse({
+        message: dto.message,
+        context,
+        mode,
+      });
+      answer = result.answer;
+      usage = result.usage;
+    }
 
     // Save assistant message
     await this.prisma.message.create({
@@ -134,7 +160,7 @@ export class ApiService {
         tenantId,
         conversationId,
         role: 'assistant',
-        content: result.answer,
+        content: answer,
       },
     });
 
@@ -142,24 +168,27 @@ export class ApiService {
     await this.prisma.usage.create({
       data: {
         tenantId,
-        inputTokens: result.usage.inputTokens,
-        outputTokens: result.usage.outputTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
         responseTimeMs: Date.now() - startedAt,
       },
     });
 
     return {
       id: userMessage.id,
-      answer: result.answer,
+      answer,
       conversationId,
+      decisionState: verification.decisionState,
+      missingEvidenceGap: verification.missingEvidenceGap,
+      evaluations: verification.evaluations,
       sources: context.map((c) => ({
         documentId: c.metadata.documentId ?? '',
         documentTitle: c.metadata.documentTitle ?? 'Untitled',
         excerpt: c.text.slice(0, 200),
         score: c.score,
       })),
-      usage: result.usage,
-      model: 'gemini-2.0-flash',
+      usage,
+      model: this.aiService.getActiveModelName(),
       latencyMs: Date.now() - startedAt,
     };
   }

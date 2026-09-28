@@ -1,48 +1,99 @@
 import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+import OpenAI, { toFile } from 'openai';
 import { DocumentsService } from '../documents/documents.service';
 import { AiService } from '../ai/ai.service';
 import { RagService } from '../rag/rag.service';
 
 @Injectable()
 export class VoiceService {
-  private readonly elevenlabs = new ElevenLabsClient({
-    apiKey: process.env.ELEVENLABS_API_KEY,
-  });
+  private readonly logger = new Logger(VoiceService.name);
+  private readonly elevenlabs: ElevenLabsClient | null = null;
 
   constructor(
     private readonly documentsService: DocumentsService,
     private readonly aiService: AiService,
     private readonly ragService: RagService,
-  ) {}
-
-  async transcribe(audioBuffer: Buffer, mimeType: string): Promise<{ text: string }> {
-    if (audioBuffer.length > 1 * 1024 * 1024) {
-      throw new BadRequestException('Recording too long.');
-    }
-
-    try {
-      // Use Uint8Array to satisfy BlobPart requirement in Node.js
-      const blob = new Blob([new Uint8Array(audioBuffer)], { type: mimeType });
-      const file = new File([blob], 'audio.webm', { type: mimeType });
-
-      const result = await this.elevenlabs.speechToText.convert({
-        file,
-        modelId: (process.env.ELEVENLABS_STT_MODEL ?? 'scribe_v2') as any,
-        languageCode: null,
-        tagAudioEvents: false,
-        diarize: false,
-      });
-
-      return { text: result.text };
-    } catch (error) {
-      throw new InternalServerErrorException(`Transcription failed: ${error.message}`);
+  ) {
+    const elevenKey = process.env.ELEVENLABS_API_KEY?.trim();
+    if (elevenKey && elevenKey.startsWith('sk_')) {
+      this.elevenlabs = new ElevenLabsClient({ apiKey: elevenKey });
     }
   }
 
+  async transcribe(audioBuffer: Buffer, mimeType: string): Promise<{ text: string }> {
+    if (audioBuffer.length > 25 * 1024 * 1024) {
+      throw new BadRequestException('Audio file exceeds 25MB limit.');
+    }
+
+    // 1. Try ElevenLabs if a valid secret key is present
+    if (this.elevenlabs) {
+      try {
+        const blob = new Blob([new Uint8Array(audioBuffer)], { type: mimeType });
+        const file = new File([blob], 'audio.webm', { type: mimeType });
+        const result = await this.elevenlabs.speechToText.convert({
+          file,
+          modelId: (process.env.ELEVENLABS_STT_MODEL ?? 'scribe_v2') as any,
+          languageCode: null,
+          tagAudioEvents: false,
+          diarize: false,
+        });
+        if (result?.text) {
+          return { text: result.text };
+        }
+      } catch (err: any) {
+        this.logger.warn(`ElevenLabs STT error: ${err.message}. Trying Groq Whisper fallback.`);
+      }
+    }
+
+    // 2. High-speed, high-accuracy Groq Whisper fallback
+    const groqKey = process.env.GROQ_API_KEY?.trim();
+    if (groqKey) {
+      try {
+        const groq = new OpenAI({
+          apiKey: groqKey,
+          baseURL: 'https://api.groq.com/openai/v1',
+        });
+        const rawMime = mimeType || 'audio/webm';
+        const cleanMime = rawMime.split(';')[0].trim();
+        let ext = 'webm';
+        if (cleanMime.includes('mp4') || cleanMime.includes('m4a')) ext = 'm4a';
+        else if (cleanMime.includes('wav')) ext = 'wav';
+        else if (cleanMime.includes('ogg')) ext = 'ogg';
+        else if (cleanMime.includes('mpeg') || cleanMime.includes('mp3')) ext = 'mp3';
+
+        const file = await toFile(audioBuffer, `audio.${ext}`, {
+          type: cleanMime,
+        });
+        const result = await groq.audio.transcriptions.create({
+          file,
+          model: 'whisper-large-v3-turbo',
+        });
+        return { text: result.text };
+      } catch (groqErr: any) {
+        this.logger.error(`Groq Whisper transcription failed: ${groqErr.message}`);
+        throw new InternalServerErrorException(`Transcription failed: ${groqErr.message}`);
+      }
+    }
+
+    throw new BadRequestException(
+      'Speech transcription unavailable: configure a valid ELEVENLABS_API_KEY (starting with sk_) or GROQ_API_KEY.',
+    );
+  }
+
   async synthesize(text: string): Promise<Buffer> {
-    const trimmedText = text.trim().slice(0, 48000); // Allow more for internal split if needed, but SDK limit is usually 5000
-    
+    const trimmedText = text.trim().slice(0, 48000);
+    const elevenKey = process.env.ELEVENLABS_API_KEY?.trim();
+
+    if (!elevenKey || !elevenKey.startsWith('sk_') || !this.elevenlabs) {
+      this.logger.warn(
+        'ElevenLabs secret key (starting with sk_) not found. TTS skipped.',
+      );
+      throw new BadRequestException(
+        "ElevenLabs secret key (starts with 'sk_') is required for server-side synthesis. Using client speech fallback.",
+      );
+    }
+
     // Simple sentence boundary split for texts > 4800 chars
     const chunks: string[] = [];
     if (trimmedText.length > 4800) {
@@ -63,9 +114,6 @@ export class VoiceService {
 
     try {
       const audioBuffers: Buffer[] = [];
-      const logger = new Logger('VoiceService');
-      logger.log(`Synthesizing text (${chunks.length} chunks): ${trimmedText.slice(0, 50)}...`);
-
       for (const chunk of chunks) {
         const audioStream = await this.elevenlabs.textToSpeech.convert(
           process.env.ELEVENLABS_VOICE_ID ?? 'JBFqnCBsd6RMkjVDRZzb',
@@ -73,41 +121,52 @@ export class VoiceService {
             text: chunk,
             modelId: (process.env.ELEVENLABS_TTS_MODEL ?? 'eleven_turbo_v2_5') as any,
             languageCode: 'en',
-          }
+          },
         );
 
         const streamChunks: Buffer[] = [];
         for await (const streamChunk of audioStream as any) {
           streamChunks.push(Buffer.from(streamChunk));
         }
-        const chunkBuffer = Buffer.concat(streamChunks);
-        audioBuffers.push(chunkBuffer);
-        logger.log(`Generated chunk of size: ${chunkBuffer.length}`);
+        audioBuffers.push(Buffer.concat(streamChunks));
       }
-      const finalBuffer = Buffer.concat(audioBuffers);
-      logger.log(`Total audio generated: ${finalBuffer.length} bytes`);
-      return finalBuffer;
-    } catch (error) {
+      return Buffer.concat(audioBuffers);
+    } catch (error: any) {
+      this.logger.error(`Synthesis failed: ${error.message}`);
       throw new InternalServerErrorException(`Synthesis failed: ${error.message}`);
     }
   }
 
-  async summarizeDocument(documentId: string, tenantId: string): Promise<{ audioBuffer: Buffer, summaryText: string }> {
+  async summarizeDocument(
+    documentId: string,
+    tenantId: string,
+  ): Promise<{ audioBuffer: Buffer; summaryText: string }> {
     const document = await this.documentsService.findOne(tenantId, documentId);
     if (!document || !document.content) {
       throw new NotFoundException('Document or document content not found');
     }
 
     const content = document.content.slice(0, 8000);
-    const summaryPrompt = `Summarize this document in 3 to 5 sentences as if speaking naturally to a colleague. Be clear and conversational. No bullet points, no headers, no markdown. Document: ${content}`;
-    
+    const summaryPrompt = `Summarize this document in 3 to 5 clear sentences. Be direct, professional, and easy to understand for any team member. No bullet points, no headers, no markdown. Document: ${content}`;
+
     const summaryText = await this.aiService.generateSummary(summaryPrompt);
-    const audioBuffer = await this.synthesize(summaryText);
+    let audioBuffer: Buffer = Buffer.from([]);
+    try {
+      audioBuffer = (await this.synthesize(summaryText)) as Buffer;
+    } catch (err: any) {
+      this.logger.warn(
+        `Document audio synthesis unavailable (${err.message}). Summary text preserved for client speech playback.`,
+      );
+    }
 
     return { audioBuffer, summaryText };
   }
 
-  async voiceSearch(audioBuffer: Buffer, mimeType: string, tenantId: string): Promise<{ query: string, results: any[] }> {
+  async voiceSearch(
+    audioBuffer: Buffer,
+    mimeType: string,
+    tenantId: string,
+  ): Promise<{ query: string; results: any[] }> {
     const { text: query } = await this.transcribe(audioBuffer, mimeType);
     const results = await this.ragService.retrieve(query, tenantId);
     return { query, results };

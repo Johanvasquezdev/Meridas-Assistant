@@ -14,12 +14,12 @@ const RAG_TOP_K = 5;
 const HISTORY_LIMIT = 20;
 
 const WIDGET_SYSTEM_PROMPT = [
-  'You are a helpful AI support assistant.',
-  'Answer questions using ONLY the provided context.',
+  'You are Meridas, an operational knowledge verification assistant. Evidence first, answer second.',
+  'Answer questions using ONLY the provided verified context.',
   'If the answer is not in the context, say:',
-  '"I don\'t have information about that. Please contact our support team directly."',
-  'Be concise and friendly.',
-  'Do not make up information.',
+  '"I do not have sufficient verified evidence in our operational directives to answer this query. Please consult the responsible systems custodian."',
+  'Be concise, rigorous, and professional. Always cite specific operational directives where available.',
+  'Do not extrapolate or speculate beyond documented directives.',
 ].join('\n');
 
 export interface WidgetChatResult {
@@ -40,11 +40,11 @@ export interface WidgetConfigResult {
 }
 
 const DEFAULT_CONFIG: WidgetConfigResult = {
-  primaryColor: '#7c3aed',
+  primaryColor: '#9E1B32',
   position: 'bottom-right',
-  placeholder: 'Ask us anything...',
-  title: 'Support',
-  welcomeMessage: 'Hi! How can I help you today?',
+  placeholder: 'Query operational directives...',
+  title: 'MERIDAS Intelligence',
+  welcomeMessage: 'Institutional Knowledge Console. Submit an operational query for verified answers with citation evidence.',
   isEnabled: true,
   allowedOrigins: [],
 };

@@ -1,16 +1,22 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState, DragEvent, ChangeEvent } from "react";
+import { Upload, FileText, X, CheckCircle2, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { FileUploadState } from "./types";
+
+export interface FileUploadState {
+  file: File;
+  progress: number;
+  status: "queued" | "uploading" | "completed" | "error";
+  error?: string;
+}
 
 interface UploadZoneProps {
   uploadQueue: Record<string, FileUploadState>;
   onFiles: (files: File[]) => void;
-  onRetryFile: (fileId: string) => void;
-  onDismissFile: (fileId: string) => void;
+  onRetryFile: (id: string) => void;
+  onDismissFile: (id: string) => void;
 }
 
 export function UploadZone({
@@ -22,32 +28,30 @@ export function UploadZone({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragOver(false);
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) onFiles(files);
-    },
-    [onFiles]
-  );
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(true);
-  }, []);
+  };
 
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    // Only fire if leaving the zone entirely (not entering a child)
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOver(false);
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    if (droppedFiles.length > 0) {
+      onFiles(droppedFiles);
     }
-  }, []);
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length > 0) onFiles(files);
-    // Reset so same file can be re-uploaded
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files ?? []);
+    if (selectedFiles.length > 0) {
+      onFiles(selectedFiles);
+    }
     e.target.value = "";
   };
 
@@ -62,30 +66,30 @@ export function UploadZone({
         onDragLeave={handleDragLeave}
         onClick={() => fileInputRef.current?.click()}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[2px] border-2 border-dashed py-10 transition-all",
+          "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 transition-all shadow-md",
           isDragOver
-            ? "border-[#7c3aed] bg-[#7c3aed]/8"
-            : "border-[#1a1a2e] bg-[#0d0d1a] hover:border-[#7c3aed]/40 hover:bg-[#7c3aed]/5"
+            ? "border-[#C9A227] bg-[#9E1B32]/10"
+            : "border-[#2A2832] bg-[#1C1B20] hover:border-[#C9A227]/40 hover:bg-[#9E1B32]/5"
         )}
       >
         <motion.div
-          animate={{ scale: isDragOver ? 1.1 : 1 }}
+          animate={{ scale: isDragOver ? 1.08 : 1 }}
           transition={{ type: "spring", stiffness: 300 }}
           className={cn(
-            "flex size-12 items-center justify-center rounded-[2px] border transition-colors",
+            "flex size-12 items-center justify-center rounded-[10px] border transition-colors",
             isDragOver
-              ? "border-[#7c3aed]/60 bg-[#7c3aed]/20 text-[#7c3aed]"
-              : "border-[#1a1a2e] bg-[#12121f] text-[#6B6A72]"
+              ? "border-[#C9A227] bg-[#9E1B32]/20 text-[#C9A227]"
+              : "border-[#2A2832] bg-[#151417] text-[#C9A227]"
           )}
         >
           <Upload size={22} />
         </motion.div>
 
         <div className="text-center">
-          <p className="text-sm font-medium text-[#F0EEE9]">
-            {isDragOver ? "Drop files to upload" : "Drag & drop files here"}
+          <p className="text-sm font-semibold text-[#F7F3EA]">
+            {isDragOver ? "Drop documents here" : "Upload documents into Knowledge Vault"}
           </p>
-          <p className="mt-0.5 font-mono text-[11px] text-[#6B6A72]">
+          <p className="mt-0.5 font-sans text-xs text-[#8C8A94]">
             PDF, TXT, MD — max 10 MB per file
           </p>
         </div>
@@ -110,29 +114,29 @@ export function UploadZone({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="flex items-center gap-4 rounded-[2px] border border-[#7c3aed]/20 bg-[#7c3aed]/5 px-4 py-3"
+            className="flex items-center gap-4 rounded-[12px] border border-[#C9A227]/30 bg-[#1C1B20] px-4 py-3 shadow-md"
           >
-            <FileText size={20} className="shrink-0 text-[#7c3aed]" />
+            <FileText size={20} className="shrink-0 text-[#C9A227]" />
 
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="truncate text-xs font-medium text-[#F0EEE9]">
+                <span className="truncate text-xs font-semibold text-[#F7F3EA]">
                   {state.file.name}
                 </span>
-                <span className="ml-4 shrink-0 font-mono text-[10px] text-[#6B6A72]">
+                <span className="ml-4 shrink-0 font-sans text-xs text-[#8C8A94]">
                   {(state.file.size / 1024).toFixed(1)} KB
                 </span>
               </div>
 
               {state.status === "error" ? (
-                <div className="flex items-center gap-1.5 font-mono text-[10px] text-red-400">
+                <div className="flex items-center gap-1.5 font-sans text-xs text-red-400">
                   <AlertCircle size={10} />
                   {state.error ?? "Upload failed"}
                 </div>
               ) : (
-                <div className="h-0.5 w-full overflow-hidden rounded-full bg-[#1a1a2e]">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#151417]">
                   <motion.div
-                    className="h-full bg-[#7c3aed]"
+                    className="h-full bg-gradient-to-r from-[#9E1B32] to-[#C9A227]"
                     initial={{ width: 0 }}
                     animate={{ width: `${state.progress}%` }}
                     transition={{ ease: "linear", duration: 0.2 }}
@@ -144,21 +148,21 @@ export function UploadZone({
             {/* Status indicator + controls */}
             <div className="shrink-0 flex items-center gap-2">
               {state.status === "uploading" && (
-                <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-[#C9A227]">
                   <Loader2 size={11} className="animate-spin" />
                   {state.progress}%
                 </div>
               )}
               {state.status === "completed" && (
-                <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                <div className="flex items-center gap-1.5 font-sans text-xs font-semibold text-emerald-400">
                   <CheckCircle2 size={11} />
-                  Done
+                  Ready
                 </div>
               )}
               {state.status === "error" && (
                 <button
                   onClick={() => onRetryFile(id)}
-                  className="flex h-6 items-center gap-1 rounded-[2px] border border-[#7c3aed]/40 bg-[#7c3aed]/10 px-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#7c3aed] transition-colors hover:bg-[#7c3aed]/20"
+                  className="flex h-6 items-center gap-1 rounded-[6px] border border-[#C9A227]/40 bg-[#9E1B32]/20 px-2 font-sans text-xs font-semibold text-[#C9A227] transition-colors hover:bg-[#9E1B32]/40"
                 >
                   <RefreshCw size={9} />
                   Retry
@@ -167,7 +171,7 @@ export function UploadZone({
               {state.status !== "uploading" && (
                 <button
                   onClick={() => onDismissFile(id)}
-                  className="flex size-6 items-center justify-center rounded-[2px] border border-[#1a1a2e] text-[#6B6A72] transition-all hover:border-red-500/40 hover:text-red-400"
+                  className="flex size-6 items-center justify-center rounded-[6px] border border-[#2A2832] text-[#8C8A94] transition-all hover:border-red-500/40 hover:text-red-400"
                 >
                   <X size={11} />
                 </button>

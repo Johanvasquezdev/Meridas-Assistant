@@ -57,13 +57,13 @@ export default function ChatInterface({
     <Card className="h-full flex flex-col">
       <CardHeader className="flex-shrink-0 pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">SupportMind AI</CardTitle>
+          <CardTitle className="text-lg font-semibold text-[#F7F3EA]">MERIDAS Evidence Intelligence</CardTitle>
           {onClearChat && messages.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onClearChat}
-              className="text-gray-500 hover:text-red-600"
+              className="text-[#8C8A94] hover:text-[#9E1B32]"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -74,14 +74,13 @@ export default function ChatInterface({
       <CardContent className="flex-1 flex flex-col min-h-0 p-0">
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium mb-2">
-                ¡Hola! Soy SupportMind AI
+            <div className="text-center text-[#8C8A94] py-8">
+              <Bot className="h-12 w-12 mx-auto mb-4 text-[#C9A227]" />
+              <p className="text-lg font-medium mb-2 text-[#F7F3EA]">
+                MERIDAS Operational Intelligence
               </p>
-              <p className="text-sm">
-                Estoy aquí para ayudarte con tus consultas de soporte.
-                ¿En qué puedo asistirte hoy?
+              <p className="text-sm max-w-sm mx-auto">
+                Ask a query grounded in verified enterprise operational directives. Evidence first. Answer second.
               </p>
             </div>
           ) : (

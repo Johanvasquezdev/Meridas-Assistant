@@ -36,7 +36,7 @@ export class AuthController {
     // we'll assume the user might have saved it or we show a masked version.
     // In a real app, you only show it ONCE at generation.
     return { 
-      apiKey: 'smk_live_' + '•'.repeat(24) + tenantId.slice(-8),
+      apiKey: 'mrd_live_' + '•'.repeat(24) + tenantId.slice(-8),
       tenantId 
     };
   }

@@ -53,12 +53,25 @@ export async function summarizeDocument(documentId: string, token: string): Prom
     throw new Error(error.message || 'Summarization failed');
   }
 
-  const audioBlob = await response.blob();
+  const contentType = response.headers.get('content-type') || '';
+  let audioBlob: Blob | null = null;
+  let summaryText = '';
+
+  if (contentType.includes('audio')) {
+    audioBlob = await response.blob();
+  } else {
+    try {
+      const data = await response.json();
+      summaryText = data.summaryText || '';
+    } catch (e) {
+      // fallback to header
+    }
+  }
+
   const summaryTextBase64 = response.headers.get('X-Summary-Text');
   
-  // Safely decode UTF-8 from base64
-  let summaryText = '';
-  if (summaryTextBase64) {
+  // Safely decode UTF-8 from base64 if not already decoded
+  if (summaryTextBase64 && !summaryText) {
     try {
       const binaryString = atob(summaryTextBase64);
       const bytes = new Uint8Array(binaryString.length);
@@ -71,7 +84,7 @@ export async function summarizeDocument(documentId: string, token: string): Prom
     }
   }
 
-  return { audioBlob, summaryText };
+  return { audioBlob: audioBlob || new Blob([], { type: 'audio/mpeg' }), summaryText };
 }
 
 export async function voiceSearch(blob: Blob, token: string): Promise<{ query: string, results: any[] }> {

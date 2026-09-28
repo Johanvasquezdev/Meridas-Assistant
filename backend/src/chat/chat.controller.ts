@@ -71,6 +71,9 @@ export class ChatController {
             type: 'done',
             conversationId: result.conversationId,
             context: result.context,
+            decisionState: result.decisionState,
+            missingEvidenceGap: result.missingEvidenceGap,
+            evaluations: result.evaluations,
             usage: result.usage,
           });
           res.end();

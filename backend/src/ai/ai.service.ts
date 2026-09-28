@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CohereClientV2 } from 'cohere-ai';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { RagChunk } from '../rag/rag.service';
@@ -54,39 +55,54 @@ interface ApiErrorShape {
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private readonly openai: OpenAI;
-  private readonly model: string;
+  private readonly cohere?: CohereClientV2;
+  private readonly cohereModel?: string;
+  private readonly openai?: OpenAI;
+  private readonly model?: string;
 
   constructor(private readonly config: ConfigService) {
+    const cohereApiKey = this.config.get<string>('COHERE_API_KEY');
     const groqApiKey = this.config.get<string>('GROQ_API_KEY');
     const geminiApiKey =
       this.config.get<string>('GEMINI_API_KEY') ??
       this.config.get<string>('GOOGLE_AI_API_KEY');
     const openAiApiKey = this.config.get<string>('OPENAI_API_KEY');
-    
-    // Priority: Groq > Gemini > OpenAI
-    const apiKey = groqApiKey ?? geminiApiKey ?? openAiApiKey;
 
-    if (!apiKey) {
-      throw new InternalServerErrorException(
-        'AI provider API key is required (GROQ_API_KEY or GEMINI_API_KEY)',
-      );
+    // Primary RAG Provider: Cohere Command R+
+    if (cohereApiKey) {
+      this.cohere = new CohereClientV2({ token: cohereApiKey });
+      this.cohereModel = this.config.get<string>('COHERE_CHAT_MODEL') ?? 'command-r-plus';
+      this.logger.log(`Initialized Cohere Client V2 with model: ${this.cohereModel}`);
     }
 
-    this.openai = new OpenAI({
-      apiKey,
-      baseURL: groqApiKey 
-        ? this.config.get<string>('GROQ_OPENAI_BASE_URL') ?? 'https://api.groq.com/openai/v1'
-        : geminiApiKey
-        ? this.config.get<string>('GEMINI_OPENAI_BASE_URL') ?? GEMINI_OPENAI_BASE_URL
-        : undefined,
-    });
+    // Secondary / Fallback OpenAI-compatible Provider (Groq / Gemini / OpenAI)
+    const fallbackKey = groqApiKey ?? geminiApiKey ?? openAiApiKey;
+    if (fallbackKey) {
+      this.openai = new OpenAI({
+        apiKey: fallbackKey,
+        baseURL: groqApiKey
+          ? this.config.get<string>('GROQ_OPENAI_BASE_URL') ?? 'https://api.groq.com/openai/v1'
+          : geminiApiKey
+          ? this.config.get<string>('GEMINI_OPENAI_BASE_URL') ?? GEMINI_OPENAI_BASE_URL
+          : undefined,
+      });
 
-    this.model = groqApiKey
-      ? this.config.get<string>('GROQ_CHAT_MODEL') ?? 'llama-3.3-70b-versatile'
-      : geminiApiKey
-      ? this.config.get<string>('GEMINI_CHAT_MODEL') ?? 'gemini-2.0-flash'
-      : this.config.get<string>('OPENAI_CHAT_MODEL') ?? 'gpt-4o-mini';
+      this.model = groqApiKey
+        ? this.config.get<string>('GROQ_CHAT_MODEL') ?? 'llama-3.3-70b-versatile'
+        : geminiApiKey
+        ? this.config.get<string>('GEMINI_CHAT_MODEL') ?? 'gemini-2.0-flash'
+        : this.config.get<string>('OPENAI_CHAT_MODEL') ?? 'gpt-4o-mini';
+    }
+
+    if (!cohereApiKey && !fallbackKey) {
+      throw new InternalServerErrorException(
+        'AI provider API key is required (COHERE_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY)',
+      );
+    }
+  }
+
+  getActiveModelName(): string {
+    return this.cohere ? (this.cohereModel ?? 'command-r-plus') : (this.model ?? 'command-r-plus');
   }
 
   async generateResponse(
@@ -110,6 +126,103 @@ export class AiService {
       };
     }
 
+    if (this.cohere && this.cohereModel) {
+      return this.generateWithCohere(input, message);
+    }
+
+    return this.generateWithOpenAiFallback(input, message);
+  }
+
+  private async generateWithCohere(
+    input: GenerateResponseInput,
+    message: string,
+  ): Promise<GenerateResponseResult> {
+    const systemPrompt = input.systemPromptOverride ?? [
+      'You are MERIDAS, an operational evidence intelligence system powered by Cohere Command R+.',
+      'Core Principle: Evidence first. Answer second.',
+      'Answer ONLY using the provided operational documents and verified evidence.',
+      'If the provided documents do not contain the answer, explicitly state that you cannot establish the answer.',
+      'Do not guess, extrapolate, or invent system configurations, credentials, or policies.',
+      'Always refer to the exact context evidence numbers like [1] or [Context 1].',
+      'For any conditional or scope-limited assertions, highlight the limitation explicitly.',
+      this.getModeInstruction(input.mode ?? 'answer'),
+    ].join('\n');
+
+    const cohereDocs = input.context.map((chunk, index) => ({
+      id: `doc-${index + 1}`,
+      data: {
+        title: chunk.metadata.documentTitle ?? `Directive ${chunk.metadata.documentId ?? index + 1}`,
+        snippet: chunk.text,
+        chunkIndex: String(chunk.metadata.chunkIndex ?? index),
+      },
+    }));
+
+    const cohereMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...(input.history?.slice(-MAX_HISTORY_MESSAGES).map((m) => ({
+        role: m.role,
+        content: m.content.slice(0, MAX_HISTORY_MESSAGE_LENGTH),
+      })) ?? []),
+      { role: 'user', content: message },
+    ];
+
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const response = await this.cohere!.chat({
+          model: this.cohereModel!,
+          messages: cohereMessages as any,
+          documents: cohereDocs,
+          temperature: 0.2,
+        });
+
+        const answer = response.message?.content
+          ?.map((item: any) => item.text ?? '')
+          .join('')
+          .trim();
+
+        const inputTokens =
+          (response.usage as any)?.tokens?.inputTokens ??
+          (response.usage as any)?.billedUnits?.inputTokens ??
+          0;
+        const outputTokens =
+          (response.usage as any)?.tokens?.outputTokens ??
+          (response.usage as any)?.billedUnits?.outputTokens ??
+          0;
+
+        return {
+          answer: answer || FALLBACK_ANSWER,
+          context: input.context,
+          usage: {
+            inputTokens,
+            outputTokens,
+            totalTokens: inputTokens + outputTokens,
+          },
+        };
+      } catch (err: any) {
+        lastError = err;
+        const status = err.status ?? err.statusCode ?? 500;
+        const isRetryable = [429, 500, 502, 503, 504].includes(status);
+        if (!isRetryable || attempt === MAX_RETRIES) {
+          this.logger.error(
+            `Cohere chat failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`,
+          );
+          throw new InternalServerErrorException(`Cohere chat failed: ${err.message}`);
+        }
+        const delayMs = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+        this.logger.warn(
+          `Cohere chat attempt ${attempt} failed (${status}), retrying in ${delayMs}ms`,
+        );
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+    throw lastError ?? new InternalServerErrorException('Cohere chat execution failed');
+  }
+
+  private async generateWithOpenAiFallback(
+    input: GenerateResponseInput,
+    message: string,
+  ): Promise<GenerateResponseResult> {
     const messages = this.buildMessages({
       message,
       context: input.context,
@@ -119,12 +232,7 @@ export class AiService {
     });
 
     const completion = await this.callWithRetry(messages, 0.2);
-
     const answer = completion.choices[0]?.message?.content?.trim();
-
-    if (!answer) {
-      this.logger.warn('AI provider returned an empty response');
-    }
 
     const usage = {
       inputTokens: completion.usage?.prompt_tokens ?? 0,
@@ -151,6 +259,90 @@ export class AiService {
       return;
     }
 
+    if (this.cohere && this.cohereModel) {
+      yield* this.streamWithCohere(input, message);
+      return;
+    }
+
+    yield* this.streamWithOpenAiFallback(input, message);
+  }
+
+  private async *streamWithCohere(
+    input: AiStreamParams,
+    message: string,
+  ): AsyncGenerator<string, void, unknown> {
+    const systemPrompt = [
+      'You are MERIDAS, an operational evidence intelligence system powered by Cohere Command R+.',
+      'Core Principle: Evidence first. Answer second.',
+      'Answer ONLY using the provided operational documents and verified evidence.',
+      'If the provided documents do not contain the answer, explicitly state that you cannot establish the answer.',
+      'Do not guess, extrapolate, or invent system configurations, credentials, or policies.',
+      'Always refer to the exact context evidence numbers like [1] or [Context 1].',
+      'For any conditional or scope-limited assertions, highlight the limitation explicitly.',
+      this.getModeInstruction(input.mode ?? 'answer'),
+    ].join('\n');
+
+    const cohereDocs = input.context.map((chunk, index) => ({
+      id: `doc-${index + 1}`,
+      data: {
+        title: chunk.metadata.documentTitle ?? `Directive ${chunk.metadata.documentId ?? index + 1}`,
+        snippet: chunk.text,
+        chunkIndex: String(chunk.metadata.chunkIndex ?? index),
+      },
+    }));
+
+    const cohereMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...(input.history?.slice(-MAX_HISTORY_MESSAGES).map((m) => ({
+        role: m.role,
+        content: m.content.slice(0, MAX_HISTORY_MESSAGE_LENGTH),
+      })) ?? []),
+      { role: 'user', content: message },
+    ];
+
+    let stream: any;
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        stream = await this.cohere!.chatStream({
+          model: this.cohereModel!,
+          messages: cohereMessages as any,
+          documents: cohereDocs,
+          temperature: 0.2,
+        });
+        break;
+      } catch (err: any) {
+        lastError = err;
+        const status = err.status ?? err.statusCode ?? 500;
+        const isRetryable = [429, 500, 502, 503, 504].includes(status);
+        if (!isRetryable || attempt === MAX_RETRIES) {
+          this.logger.error(
+            `Cohere stream initiation failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`,
+          );
+          throw new InternalServerErrorException(`Cohere stream failed: ${err.message}`);
+        }
+        const delayMs = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+
+    if (!stream) throw lastError ?? new InternalServerErrorException('Stream initiation failed');
+
+    for await (const chatEvent of stream) {
+      if (chatEvent.type === 'content-delta') {
+        const token = chatEvent.delta?.message?.content?.text ?? '';
+        if (token) {
+          yield token;
+        }
+      }
+    }
+  }
+
+  private async *streamWithOpenAiFallback(
+    input: AiStreamParams,
+    message: string,
+  ): AsyncGenerator<string, void, unknown> {
     const messages = this.buildMessages({
       message,
       context: input.context,
@@ -163,8 +355,8 @@ export class AiService {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        stream = await this.openai.chat.completions.create({
-          model: this.model,
+        stream = await this.openai!.chat.completions.create({
+          model: this.model!,
           messages,
           temperature: 0.2,
           stream: true,
@@ -177,10 +369,13 @@ export class AiService {
         const isRetryable = [429, 500, 502, 503].includes(status);
 
         if (!isRetryable || attempt === MAX_RETRIES) {
-          const friendlyMessage = status === 429 
-            ? "The AI system is currently busy (Rate Limit). Please wait a few seconds and try again."
-            : `AI stream failed: ${err.message}`;
-          this.logger.error(`AI stream failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`);
+          const friendlyMessage =
+            status === 429
+              ? 'The AI system is currently busy (Rate Limit). Please wait a few seconds and try again.'
+              : `AI stream failed: ${err.message}`;
+          this.logger.error(
+            `AI stream failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`,
+          );
           throw new InternalServerErrorException(friendlyMessage);
         }
 
@@ -191,21 +386,12 @@ export class AiService {
 
     if (!stream) throw lastError ?? new InternalServerErrorException('Stream initiation failed');
 
-    let totalOutputTokens = 0;
-
     for await (const chunk of stream) {
       const token = chunk.choices[0]?.delta?.content ?? '';
       if (token) {
-        totalOutputTokens++;
         yield token;
       }
-
-      if (chunk.usage) {
-        totalOutputTokens = chunk.usage.completion_tokens ?? totalOutputTokens;
-      }
     }
-
-    this.logger.debug(`Stream completed with ${totalOutputTokens} output tokens`);
   }
 
   estimateTokens(text: string): number {
@@ -213,16 +399,46 @@ export class AiService {
   }
 
   async generateSummary(prompt: string): Promise<string> {
-    const completion = await this.callWithRetry([
-      {
-        role: 'system',
-        content: 'You are a helpful assistant that summarizes documents clearly and concisely for text-to-speech conversion.',
-      },
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ], 0.3);
+    if (this.cohere && this.cohereModel) {
+      const response = await this.cohere.chat({
+        model: this.cohereModel,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a helpful assistant that summarizes documents clearly and concisely for text-to-speech conversion.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+      });
+
+      const summary = response.message?.content
+        ?.map((c: any) => c.text ?? '')
+        .join('')
+        .trim();
+
+      if (!summary) throw new InternalServerErrorException('Failed to generate summary');
+      return summary;
+    }
+
+    const completion = await this.callWithRetry(
+      [
+        {
+          role: 'system',
+          content:
+            'You are a helpful assistant that summarizes documents clearly and concisely for text-to-speech conversion.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      0.3,
+    );
 
     const summary = completion.choices[0]?.message?.content?.trim();
     if (!summary) {
@@ -231,16 +447,85 @@ export class AiService {
     return summary;
   }
 
+  async callDirectJsonPrompt(prompt: string): Promise<string> {
+    if (this.cohere && this.cohereModel) {
+      let lastError: Error | undefined;
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const response = await this.cohere.chat({
+            model: this.cohereModel,
+            responseFormat: { type: 'json_object' },
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are the MERIDAS JSON verification engine. Return ONLY valid JSON matching the schema, with zero introductory text or conversational wrapper.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.1,
+          });
+
+          const content = response.message?.content
+            ?.map((c: any) => c.text ?? '')
+            .join('')
+            .trim();
+
+          if (!content) {
+            throw new InternalServerErrorException('Cohere returned empty JSON');
+          }
+          return content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        } catch (err: any) {
+          lastError = err;
+          if (attempt === MAX_RETRIES) {
+            this.logger.error(`Cohere JSON prompt failed: ${err.message}`);
+            throw new InternalServerErrorException(`Cohere JSON prompt failed: ${err.message}`);
+          }
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      }
+      throw lastError ?? new InternalServerErrorException('JSON verification failed');
+    }
+
+    const completion = await this.callWithRetry(
+      [
+        {
+          role: 'system',
+          content:
+            'You are the MERIDAS JSON verification engine. Return ONLY valid JSON matching the schema, with zero introductory text or conversational wrapper.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      0.1,
+    );
+
+    const content = completion.choices[0]?.message?.content?.trim();
+    if (!content) {
+      throw new InternalServerErrorException('AI provider returned empty JSON');
+    }
+    return content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  }
+
   private async callWithRetry(
     messages: ChatCompletionMessageParam[],
     temperature: number,
   ): Promise<OpenAI.Chat.Completions.ChatCompletion> {
+    if (!this.openai) {
+      throw new InternalServerErrorException('OpenAI-compatible provider is not configured');
+    }
+
     let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         return await this.openai.chat.completions.create({
-          model: this.model,
+          model: this.model!,
           messages,
           temperature,
         });
@@ -251,9 +536,10 @@ export class AiService {
         const isRetryable = [429, 500, 502, 503].includes(status);
 
         if (!isRetryable || attempt === MAX_RETRIES) {
-          const friendlyMessage = status === 429 
-            ? "The AI system is currently busy (Rate Limit). Please wait a few seconds and try again."
-            : `AI call failed: ${err.message}`;
+          const friendlyMessage =
+            status === 429
+              ? 'The AI system is currently busy (Rate Limit). Please wait a few seconds and try again.'
+              : `AI chat completion failed: ${err.message}`;
           this.logger.error(
             `AI chat completion failed (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`,
           );
@@ -292,15 +578,18 @@ export class AiService {
     mode?: AnswerMode;
     systemPromptOverride?: string;
   }): ChatCompletionMessageParam[] {
-    const systemContent = systemPromptOverride ?? [
-      'You are SupportMind AI, a customer support assistant.',
-      'Answer only using the provided company context.',
-      'If the context does not contain the answer, say you do not have enough information.',
-      'Do not guess, invent policies, or use outside knowledge.',
-      'When possible, cite the context number like [Context 1].',
-      'Keep answers concise, helpful, and professional.',
-      this.getModeInstruction(mode ?? 'answer'),
-    ].join('\n');
+    const systemContent =
+      systemPromptOverride ??
+      [
+        'You are MERIDAS, an evidence intelligence system for operational knowledge.',
+        'Core Principle: Evidence first. Answer second.',
+        'Answer ONLY using the provided operational context and verified evidence.',
+        'If the context does not contain the answer, explicitly state that you cannot establish the answer.',
+        'Do not guess, extrapolate, or invent system configurations, credentials, or policies.',
+        'Always link claims to explicit evidence context numbers like [1] or [Context 1].',
+        'For any conditional or scope-limited assertions, highlight the limitation explicitly.',
+        this.getModeInstruction(mode ?? 'answer'),
+      ].join('\n');
     return [
       {
         role: 'system',

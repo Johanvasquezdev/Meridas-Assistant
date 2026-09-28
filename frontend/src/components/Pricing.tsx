@@ -5,47 +5,66 @@ import { motion } from "framer-motion";
 
 const plans = [
   {
-    name: "Start",
-    description: "Perfect for small teams",
+    name: "Starter",
+    description: "For teams needing accurate, policy-grounded AI answers",
     price: "$49.99",
     cta: "Start Free Trial",
-    features: ["1,000 msg", "Email support", "Basic insights", "5 seats", "API access"],
+    features: [
+      "1,000 Verified Answers",
+      "Document Library Upload",
+      "Exact Source Citations",
+      "5 Team Member Seats",
+      "REST API Access",
+    ],
   },
   {
-    name: "Pro",
-    description: "For growing businesses",
+    name: "Professional",
+    description: "For businesses needing complete verification & voice chat",
     price: "$99.99",
     cta: "Start Free Trial",
     featured: true,
     features: [
-      "10,000 msg",
-      "Priority support",
-      "Advanced stats",
-      "Unlimited seats",
-      "Custom RAG",
-      "Multi-lang",
-      "White-label",
+      "10,000 Verified Answers",
+      "Real-Time ElevenLabs Voice",
+      "Full Audit Trail & History",
+      "Unlimited Team Seats",
+      "Policy Conflict Detection",
+      "Embeddable Website Widget",
+      "Priority Support SLA",
     ],
   },
   {
     name: "Enterprise",
-    description: "For large organizations",
+    description: "Dedicated isolated environments & custom integrations",
     price: "Custom",
-    cta: "Contact Sales",
-    features: ["Unlimited msg", "Dedicated rep", "Custom model", "SSO/SAML", "SLA help", "On-prem", "Custom billing"],
+    cta: "Contact Enterprise Sales",
+    features: [
+      "Unlimited Volume",
+      "Dedicated Private Cloud / On-Prem",
+      "Custom Model Fine-Tuning",
+      "Single Sign-On (SAML / SSO)",
+      "Dedicated Solutions Architect",
+    ],
   },
 ];
 
 export function Pricing() {
   return (
-    <section id="pricing" className="py-[120px] border-b border-[#1a1a2e]">
-      <div className="mx-auto max-w-[1200px] px-6">
+    <section id="pricing" className="py-[120px] border-b border-[#2A2832] bg-[#151417]">
+      <div className="mx-auto max-w-[1240px] px-6">
         
         {/* Header */}
         <div className="mb-16">
-          <h2 className="font-sans text-[48px] font-bold text-[#F0EEE9] mb-4">Simple Pricing</h2>
-          <p className="font-sans text-[16px] text-[#6B6A72]">
-            Choose the perfect plan for your team. All plans include a 14-day free trial.
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] border border-[#C9A227]/30 bg-[#9E1B32]/10 mb-4">
+            <span className="font-sans text-xs uppercase tracking-wider text-[#C9A227] font-semibold">
+              Simple Pricing
+            </span>
+          </div>
+          <h2 className="font-sans text-[40px] sm:text-[48px] font-bold text-[#F7F3EA] mb-4">
+            Predictable Enterprise Tiers
+          </h2>
+          <p className="font-sans text-[16px] text-[#8C8A94] max-w-[560px]">
+            Every tier includes strict evidence grounding and zero hallucinations by default.
           </p>
         </div>
 
@@ -58,41 +77,50 @@ export function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className={`flex flex-col bg-[#0d0d1a] border border-[#1a1a2e] rounded-[2px] p-8 ${
-                plan.featured ? "border-t-2 border-t-[#7c3aed]" : ""
+              className={`flex flex-col bg-[#1C1B20] border rounded-[16px] p-8 relative shadow-xl transition-all ${
+                plan.featured 
+                  ? "border-[#C9A227] shadow-[#9E1B32]/10 ring-1 ring-[#C9A227]/30" 
+                  : "border-[#2A2832] hover:border-[#C9A227]/40"
               }`}
             >
+              {plan.featured && (
+                <div className="absolute -top-3.5 right-6 px-3 py-1 rounded-full bg-[#9E1B32] border border-[#C9A227] font-sans text-[10px] uppercase tracking-wider text-[#F7F3EA] font-bold shadow-md">
+                  MOST POPULAR
+                </div>
+              )}
+
               <div className="mb-8">
-                <h3 className="font-sans text-[18px] font-bold text-[#F0EEE9] mb-2">{plan.name}</h3>
-                <p className="font-sans text-[13px] text-[#6B6A72]">{plan.description}</p>
+                <h3 className="font-sans text-[20px] font-bold text-[#F7F3EA] mb-2">{plan.name}</h3>
+                <p className="font-sans text-[13px] text-[#8C8A94] leading-relaxed">{plan.description}</p>
               </div>
 
-              <div className="mb-8 flex items-baseline gap-1">
-                <span className="font-sans text-[52px] font-bold text-[#F0EEE9] leading-none">{plan.price}</span>
+              <div className="mb-8 flex items-baseline gap-1.5">
+                <span className="font-sans text-[48px] sm:text-[52px] font-bold text-[#F7F3EA] leading-none tracking-tight">{plan.price}</span>
                 {plan.price !== "Custom" && (
-                  <span className="font-sans text-[14px] text-[#6B6A72]">/month</span>
+                  <span className="font-sans text-[14px] text-[#8C8A94]">/month</span>
                 )}
               </div>
 
               <div className="flex-1 mb-8">
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-2.5">
                   {plan.features.map((feature) => (
-                    <span 
+                    <div 
                       key={feature} 
-                      className="font-mono text-[11px] text-[#6B6A72] border border-[#1a1a2e] rounded-[2px] px-2 py-1"
+                      className="flex items-center gap-2.5 text-[13px] text-[#F7F3EA]/90 font-sans"
                     >
-                      [ {feature} ]
-                    </span>
+                      <span className="text-[#C9A227] font-bold">✓</span>
+                      <span>{feature}</span>
+                    </div>
                   ))}
                 </div>
               </div>
 
               <Link
-                href={plan.cta === "Contact Sales" ? "#footer" : "/sign-up"}
-                className={`w-full py-4 rounded-[2px] font-sans text-xs font-bold uppercase tracking-widest text-center transition-all ${
+                href={plan.cta.includes("Contact") ? "#faq" : "/sign-up"}
+                className={`w-full py-3.5 rounded-[8px] font-sans text-xs font-bold uppercase tracking-widest text-center transition-all ${
                   plan.featured 
-                    ? "bg-[#7c3aed] text-white hover:bg-[#6d28d9]" 
-                    : "border border-[#1a1a2e] text-[#F0EEE9] hover:border-[#7c3aed]"
+                    ? "bg-[#9E1B32] hover:bg-[#BA243F] text-[#F7F3EA] border border-[#C9A227]/50 shadow-lg shadow-[#9E1B32]/25" 
+                    : "border border-[#2A2832] bg-[#151417] text-[#F7F3EA] hover:border-[#C9A227] hover:text-[#C9A227]"
                 }`}
               >
                 {plan.cta}

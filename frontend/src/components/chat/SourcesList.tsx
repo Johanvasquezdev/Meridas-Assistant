@@ -33,17 +33,17 @@ export function SourcesList({ context, highlightedIndex }: SourcesListProps) {
   return (
     <div className="mt-8 flex flex-col gap-4">
       {/* Header Row */}
-      <div className="flex items-center justify-between border-t border-white/10 pt-4">
-        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#6B6A72]">
-          SOURCES
+      <div className="flex items-center justify-between border-t border-white/10 pt-4 font-sans">
+        <span className="font-sans text-xs font-semibold uppercase tracking-wider text-[#8C8A94]">
+          Verified Sources
         </span>
-        <span className="font-mono text-[11px] text-[#6B6A72]">
+        <span className="font-sans text-xs text-[#8C8A94]">
           {uniqueSources.length} reference{uniqueSources.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       {/* Cards List */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 font-sans">
         <AnimatePresence mode="popLayout">
           {displaySources.map((item, i) => (
             <motion.div
@@ -70,9 +70,9 @@ export function SourcesList({ context, highlightedIndex }: SourcesListProps) {
       {hasMore && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="flex w-full items-center justify-center border border-dashed border-white/10 bg-black/20 py-3 transition-all hover:bg-black/40"
+          className="flex w-full items-center justify-center rounded-[8px] border border-dashed border-white/10 bg-black/20 py-2.5 transition-all hover:bg-black/40 font-sans"
         >
-          <span className="font-mono text-[11px] text-[#6B6A72]">
+          <span className="font-sans text-xs text-[#8C8A94]">
             Show all {uniqueSources.length} sources ↓
           </span>
         </button>
@@ -81,9 +81,9 @@ export function SourcesList({ context, highlightedIndex }: SourcesListProps) {
       {showAll && hasMore && (
         <button
           onClick={() => setShowAll(false)}
-          className="flex items-center justify-center py-2"
+          className="flex items-center justify-center py-2 font-sans"
         >
-          <span className="font-mono text-[11px] text-[#6B6A72] hover:text-[#F0EEE9] transition-colors">
+          <span className="font-sans text-xs text-[#8C8A94] hover:text-[#F0EEE9] transition-colors">
             Show fewer sources ↑
           </span>
         </button>

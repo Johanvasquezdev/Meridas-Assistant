@@ -74,10 +74,21 @@ describe('ChatService', () => {
       $transaction: jest.fn().mockResolvedValue([]),
     };
 
+    const verificationService = {
+      evaluateEvidenceAndAnswer: jest.fn().mockResolvedValue({
+        decisionState: 'SUPPORTED',
+        plainAnswer: 'Refunds are available within 30 days.',
+        evaluations: [],
+        supportRatio: 1.0,
+        contradictionsDetected: 0,
+      }),
+    };
+
     service = new ChatService(
       prisma as unknown as PrismaService,
       ragService as unknown as RagService,
       aiService as unknown as AiService,
+      verificationService as any,
     );
   });
 
@@ -154,6 +165,9 @@ describe('ChatService', () => {
       conversationId: 'conversation-1',
       message: 'Refunds are available within 30 days.',
       context: [],
+      decisionState: 'SUPPORTED',
+      missingEvidenceGap: undefined,
+      evaluations: [],
       usage: { inputTokens: 10, outputTokens: 8, totalTokens: 18 },
     });
   });

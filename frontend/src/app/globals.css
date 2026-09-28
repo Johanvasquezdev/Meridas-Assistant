@@ -4,29 +4,33 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #fcfcff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.967 0.001 286);
-  --muted-foreground: oklch(0.551 0.027 264);
-  --accent: oklch(0.951 0.026 286);
-  --accent-foreground: oklch(0.145 0 0);
-  --border: oklch(0.92 0.004 286);
-  --ring: oklch(0.6 0.2 280);
+  --background: #F7F3EA;
+  --foreground: #151417;
+  --card: #FFFFFF;
+  --card-foreground: #151417;
+  --muted: #EFE9DC;
+  --muted-foreground: #6B685F;
+  --primary: #9E1B32;
+  --primary-foreground: #F7F3EA;
+  --accent: #C9A227;
+  --accent-foreground: #151417;
+  --border: #E2DBD0;
+  --ring: #9E1B32;
 }
 
 .dark {
-  --background: #080810;
-  --foreground: #F0EEE9;
-  --card: #0d0d1a;
-  --card-foreground: #F0EEE9;
-  --muted: #12121f;
-  --muted-foreground: #6B6A72;
-  --accent: #7c3aed;
-  --accent-foreground: #F0EEE9;
-  --border: #1a1a2e;
-  --ring: #7c3aed;
+  --background: #151417;
+  --foreground: #F7F3EA;
+  --card: #1C1B20;
+  --card-foreground: #F7F3EA;
+  --muted: #232229;
+  --muted-foreground: #8C8A94;
+  --primary: #9E1B32;
+  --primary-foreground: #F7F3EA;
+  --accent: #C9A227;
+  --accent-foreground: #151417;
+  --border: #2A2832;
+  --ring: #C9A227;
 }
 
 @theme inline {
@@ -36,12 +40,24 @@
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+
+  --color-meridas-crimson: #9E1B32;
+  --color-meridas-crimson-hover: #B8223C;
+  --color-meridas-gold: #C9A227;
+  --color-meridas-gold-light: #DFC052;
+  --color-meridas-charcoal: #151417;
+  --color-meridas-card: #1C1B20;
+  --color-meridas-ivory: #F7F3EA;
+
   --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-mono: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-code: var(--font-ibm-plex-mono), ui-monospace, monospace;
 }
 
 @layer base {
@@ -51,10 +67,20 @@
 
   html {
     scroll-behavior: smooth;
+    font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+  }
+
+  pre, code, kbd, samp {
+    font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
   }
 }
 
@@ -151,12 +177,12 @@
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.35);
+  background: rgba(158, 27, 50, 0.4);
   border-radius: 3px;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 58, 237, 0.6);
+  background: rgba(201, 162, 39, 0.6);
 }
 
 /* Hide Clerk internal development badge */

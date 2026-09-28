@@ -1,14 +1,14 @@
 import { createHash, randomBytes } from 'crypto';
 
 // ─── Key format ──────────────────────────────────────────────────────────────
-// Generated keys follow the pattern:  smk_live_<32 hex chars>
+// Generated keys follow the pattern:  mrd_live_<32 hex chars>
 // Examples:
-//   smk_live_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+//   mrd_live_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
 //
 // The prefix makes keys recognisable in logs and config files without
-// revealing the secret portion (similar to Stripe's sk_live_ / sk_test_).
+// revealing the secret portion.
 
-const KEY_PREFIX = 'smk_live_';
+const KEY_PREFIX = 'mrd_live_';
 const KEY_RANDOM_BYTES = 32; // 256 bits of entropy
 
 // ─── Hashing ─────────────────────────────────────────────────────────────────

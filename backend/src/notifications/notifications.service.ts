@@ -100,56 +100,54 @@ export class NotificationsService {
 
   async sendWelcomeEmail(to: string, name: string): Promise<void> {
     const content = `
-      <h1>Welcome to SupportMind AI, ${name}!</h1>
-      <p>We're thrilled to have you on board. Your 14-day trial is now active, giving you full access to our AI-powered document analysis and chat features.</p>
-      <p>Ready to get started? Upload your first document to begin chatting with your data.</p>
+      <h1>Welcome to MERIDAS Operational Intelligence, ${name}!</h1>
+      <p>Your institutional verification workspace is now active, granting you zero-hallucination operational knowledge intelligence.</p>
+      <p>Ready to get started? Ingest your operational directives, SOPs, and technical runbooks to verify knowledge across your enterprise.</p>
       <div class="button-container">
-        <a href="${this.configService.get('FRONTEND_URL')}/dashboard" class="button">Go to Dashboard</a>
+        <a href="${this.configService.get('FRONTEND_URL')}/dashboard" class="button">Go to Console</a>
       </div>
-      <p class="muted">Need help? Reply to this email and our support team will be happy to assist.</p>
+      <p class="muted">Need assistance? Reply to this dispatch and our systems team will be glad to assist.</p>
     `;
-    const html = baseTemplate(content, 'Welcome to SupportMind AI');
-    await this.sendEmail(to, 'Welcome to SupportMind AI', html);
+    const html = baseTemplate(content, 'Welcome to MERIDAS');
+    await this.sendEmail(to, 'Welcome to MERIDAS Operational Intelligence', html);
   }
 
   async sendPasswordResetEmail(to: string, resetLink: string): Promise<void> {
     const content = `
-      <h1>Reset your SupportMind password</h1>
-      <p>We received a request to reset your password. Click the button below to choose a new one. This link expires in 1 hour.</p>
+      <h1>Reset your MERIDAS credentials</h1>
+      <p>We received an authorized request to reset your access passkey. Click the secure link below to set new credentials. This link expires in 1 hour.</p>
       <div class="button-container">
-        <a href="${resetLink}" class="button">Reset Password</a>
+        <a href="${resetLink}" class="button">Reset Credentials</a>
       </div>
-      <p class="muted">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+      <p class="muted">If you did not request this credential reset, contact your system administrator immediately.</p>
     `;
-    const html = baseTemplate(content, 'Reset your SupportMind password');
-    await this.sendEmail(to, 'Reset your SupportMind password', html);
+    const html = baseTemplate(content, 'Reset your MERIDAS credentials');
+    await this.sendEmail(to, 'Reset your MERIDAS credentials', html);
   }
 
   async sendPlanConfirmationEmail(to: string, name: string, plan: string, amount: string): Promise<void> {
-    const limits = plan.toLowerCase() === 'pro' ? '10,000 messages' : '1,000 messages';
+    const limits = plan.toLowerCase() === 'pro' ? '10,000 queries' : '1,000 queries';
     const content = `
-      <h1>Your SupportMind ${plan} plan is active</h1>
-      <p>Hi ${name}, thank you for choosing SupportMind AI! Your subscription is now active.</p>
-      <p><strong>Plan:</strong> ${plan}<br>
-      <strong>Amount Charged:</strong> ${amount}<br>
-      <strong>Included:</strong> ${limits} per month</p>
+      <h1>Your MERIDAS ${plan} Tier is Active</h1>
+      <p>Hi ${name}, thank you for choosing MERIDAS. Continuous knowledge verification and contradiction detection are now provisioned.</p>
+      <p><strong>Tier:</strong> ${plan}<br>
+      <strong>Amount:</strong> ${amount}<br>
+      <strong>Provisioned Quota:</strong> ${limits} per billing cycle</p>
       <div class="button-container">
-        <a href="${this.configService.get('FRONTEND_URL')}/dashboard" class="button">Go to Dashboard</a>
+        <a href="${this.configService.get('FRONTEND_URL')}/dashboard" class="button">Go to Console</a>
       </div>
     `;
-    const html = baseTemplate(content, `Your SupportMind ${plan} plan is active`);
-    await this.sendEmail(to, `Your SupportMind ${plan} plan is active`, html);
+    const html = baseTemplate(content, `Your MERIDAS ${plan} Tier is Active`);
+    await this.sendEmail(to, `Your MERIDAS ${plan} Tier is Active`, html);
   }
 
   async sendTrialEndingEmail(to: string, name: string, daysLeft: number): Promise<void> {
     const content = `
-      <h1>Your trial ends in ${daysLeft} days</h1>
-      <p>Hi ${name}, your 14-day trial of SupportMind AI is coming to an end. We hope you've enjoyed the powerful insights from your documents!</p>
-      <p>Upgrade now to a paid plan to keep your access uninterrupted and unlock even higher limits.</p>
-      <p><strong>Start Plan:</strong> Perfect for individuals.<br>
-      <strong>Pro Plan:</strong> Best for teams and heavy users.</p>
+      <h1>Your verification trial ends in ${daysLeft} days</h1>
+      <p>Hi ${name}, your evaluation period for MERIDAS Operational Intelligence concludes in ${daysLeft} days.</p>
+      <p>Maintain continuous conflict monitoring and high-assurance evidence retrieval across your directives by selecting a tier.</p>
       <div class="button-container">
-        <a href="${this.configService.get('FRONTEND_URL')}/dashboard/billing" class="button">Upgrade Now</a>
+        <a href="${this.configService.get('FRONTEND_URL')}/dashboard/billing" class="button">Inspect Tiers</a>
       </div>
     `;
     const html = baseTemplate(content, `Your trial ends in ${daysLeft} days`);
@@ -158,15 +156,14 @@ export class NotificationsService {
 
   async sendTrialExpiredEmail(to: string, name: string): Promise<void> {
     const content = `
-      <h1>Your SupportMind trial has ended</h1>
-      <p>Hi ${name}, your trial has officially ended. To continue using SupportMind AI with your existing documents and chat history, please upgrade to a paid plan.</p>
-      <p>Your account has been downgraded to the Free tier limits. Upgrade now to restore full functionality.</p>
+      <h1>Your MERIDAS evaluation has concluded</h1>
+      <p>Hi ${name}, your trial period has completed. To preserve multi-repository citation indices and real-time conflict escalation, upgrade your workspace.</p>
       <div class="button-container">
-        <a href="${this.configService.get('FRONTEND_URL')}/dashboard/billing" class="button">Upgrade to Pro</a>
+        <a href="${this.configService.get('FRONTEND_URL')}/dashboard/billing" class="button">Activate Workspace</a>
       </div>
     `;
-    const html = baseTemplate(content, 'Your SupportMind trial has ended');
-    await this.sendEmail(to, 'Your SupportMind trial has ended', html);
+    const html = baseTemplate(content, 'Your MERIDAS evaluation has concluded');
+    await this.sendEmail(to, 'Your MERIDAS evaluation has concluded', html);
   }
 
   async sendWelcomeSMS(to: string, name: string): Promise<void> {

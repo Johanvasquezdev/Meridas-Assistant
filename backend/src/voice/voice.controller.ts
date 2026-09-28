@@ -61,13 +61,28 @@ export class VoiceController {
       tenantId,
     );
     
-    res.set({
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': audioBuffer.length,
-      'X-Summary-Text': Buffer.from(summaryText).toString('base64'),
-      'Access-Control-Expose-Headers': 'X-Summary-Text',
-    });
-    res.end(audioBuffer);
+    if (audioBuffer && audioBuffer.length > 0) {
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.length.toString(),
+        'X-Summary-Text': Buffer.from(summaryText).toString('base64'),
+        'X-Audio-Available': 'true',
+        'Access-Control-Expose-Headers': 'X-Summary-Text, X-Audio-Available',
+      });
+      res.end(audioBuffer);
+    } else {
+      res.set({
+        'Content-Type': 'application/json',
+        'X-Summary-Text': Buffer.from(summaryText).toString('base64'),
+        'X-Audio-Available': 'false',
+        'Access-Control-Expose-Headers': 'X-Summary-Text, X-Audio-Available',
+      });
+      res.json({
+        summaryText,
+        audioAvailable: false,
+        message: 'Summary generated successfully. Use browser speech playback.',
+      });
+    }
   }
 
   @Post('search')

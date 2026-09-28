@@ -6,6 +6,7 @@ import { NestExpressApplication, ExpressAdapter } from '@nestjs/platform-express
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  console.log('[MERIDAS] Starting backend application bootstrap...');
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
     new ExpressAdapter(),
@@ -32,6 +33,10 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT') ?? 3001;
   await app.listen(port);
+  console.log(`[MERIDAS] Backend server successfully listening on http://localhost:${port}`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('[MERIDAS FATAL BOOTSTRAP ERROR]:', err);
+  process.exit(1);
+});

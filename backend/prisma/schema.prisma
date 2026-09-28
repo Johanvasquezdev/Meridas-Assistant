@@ -14,11 +14,16 @@ model Tenant {
   apiKeyHash    String         @unique @map("api_key_hash")
   apiRequests   ApiRequest[]
   conversations Conversation[]
-  documents     Document[]
-  subscription  Subscription?
-  usage         Usage[]
-  users         User[]
-  widgetConfig  WidgetConfig?
+  documents         Document[]
+  sources           Source[]
+  questions         Question[]
+  conflicts         Conflict[]
+  authorityPolicies AuthorityPolicy[]
+  auditEvents       AuditEvent[]
+  subscription      Subscription?
+  usage             Usage[]
+  users             User[]
+  widgetConfig      WidgetConfig?
 }
 
 model User {
@@ -28,8 +33,9 @@ model User {
   tenantId  String
   createdAt DateTime @default(now())
   clerkId   String?  @unique
-  phone     String?
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  questions       Question[]
+  reviewDecisions ReviewDecision[]
 
   @@index([tenantId])
 }
@@ -224,4 +230,234 @@ enum DocumentStatus {
   PROCESSING
   READY
   FAILED
+}
+
+model Source {
+  id            String          @id @default(uuid())
+  tenantId      String
+  title         String
+  domain        String          @default("OPERATIONAL_SOP")
+  scopeSite     String?
+  scopeSystem   String?
+  ownerEmail    String?
+  authorityRank Int             @default(1)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  tenant        Tenant          @relation(fields: [tenantId], references: [id])
+  versions      SourceVersion[]
+
+  @@index([tenantId])
+  @@index([tenantId, scopeSite, scopeSystem])
+}
+
+model SourceVersion {
+  id             String         @id @default(uuid())
+  sourceId       String
+  versionNumber  String
+  status         SourceStatus   @default(ACTIVE)
+  fileHash       String
+  effectiveDate  DateTime       @default(now())
+  expirationDate DateTime?
+  author         String?
+  supersededById String?
+  createdAt      DateTime       @default(now())
+  source         Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  passages       Passage[]
+  claims         Claim[]
+
+  @@unique([sourceId, versionNumber])
+  @@index([sourceId])
+  @@index([fileHash])
+}
+
+model Passage {
+  id              String                   @id @default(uuid())
+  sourceVersionId String
+  passageIndex    Int
+  startOffset     Int                      @default(0)
+  endOffset       Int                      @default(0)
+  text            String
+  sectionTitle    String?
+  vectorId        String?                  @unique
+  searchVector    Unsupported("tsvector")? @map("search_vector")
+  createdAt       DateTime                 @default(now())
+  sourceVersion   SourceVersion            @relation(fields: [sourceVersionId], references: [id], onDelete: Cascade)
+  claims          Claim[]
+  evidenceLinks   EvidenceLink[]
+
+  @@index([sourceVersionId])
+}
+
+model Claim {
+  id              String           @id @default(uuid())
+  tenantId        String
+  sourceVersionId String?
+  passageId       String?
+  statement       String
+  scopeKey        String?
+  temporalScope   String?
+  createdAt       DateTime         @default(now())
+  sourceVersion   SourceVersion?   @relation(fields: [sourceVersionId], references: [id], onDelete: Cascade)
+  passage         Passage?         @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  evidenceLinks   EvidenceLink[]
+  conflictsAsA    Conflict[]       @relation("ClaimA")
+  conflictsAsB    Conflict[]       @relation("ClaimB")
+
+  @@index([tenantId])
+  @@index([sourceVersionId])
+  @@index([passageId])
+}
+
+model EvidenceLink {
+  id              String                 @id @default(uuid())
+  assessmentId    String
+  claimId         String
+  passageId       String
+  relationship    EntailmentRelationship @default(SUPPORTS)
+  entailmentScore Float                  @default(1.0)
+  rationale       String?
+  createdAt       DateTime               @default(now())
+  assessment      Assessment             @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  claim           Claim                  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  passage         Passage                @relation(fields: [passageId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@index([claimId])
+  @@index([passageId])
+}
+
+model Question {
+  id                String       @id @default(uuid())
+  tenantId          String
+  userId            String
+  rawQuery          String
+  normalizedQuery   String?
+  targetScopeSite   String?
+  targetScopeSystem String?
+  riskLevel         RiskLevel    @default(LOW)
+  createdAt         DateTime     @default(now())
+  tenant            Tenant       @relation(fields: [tenantId], references: [id])
+  user              User         @relation(fields: [userId], references: [id])
+  assessments       Assessment[]
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model Assessment {
+  id                       String         @id @default(uuid())
+  questionId               String
+  decisionState            DecisionState  @default(SUPPORTED)
+  plainAnswer              String?
+  missingEvidenceGap       String?
+  unresolvedConflictsCount Int            @default(0)
+  evaluatedAt              DateTime       @default(now())
+  question                 Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  evidenceLinks            EvidenceLink[]
+
+  @@index([questionId])
+}
+
+model Conflict {
+  id           String         @id @default(uuid())
+  tenantId     String
+  claimAId     String
+  claimBId     String
+  conflictType ConflictType   @default(DIRECT_CONTRADICTION)
+  severity     String         @default("HIGH")
+  status       ConflictStatus @default(DETECTED)
+  assignedTo   String?
+  detectedAt   DateTime       @default(now())
+  resolvedAt   DateTime?
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  claimA       Claim          @relation("ClaimA", fields: [claimAId], references: [id], onDelete: Cascade)
+  claimB       Claim          @relation("ClaimB", fields: [claimBId], references: [id], onDelete: Cascade)
+  decisions    ReviewDecision[]
+
+  @@index([tenantId])
+  @@index([claimAId])
+  @@index([claimBId])
+}
+
+model ReviewDecision {
+  id              String         @id @default(uuid())
+  conflictId      String
+  decidedByUserId String
+  decision        String
+  scopeOverride   String?
+  rationale       String
+  decidedAt       DateTime       @default(now())
+  conflict        Conflict       @relation(fields: [conflictId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [decidedByUserId], references: [id])
+
+  @@index([conflictId])
+  @@index([decidedByUserId])
+}
+
+model AuthorityPolicy {
+  id              String         @id @default(uuid())
+  tenantId        String
+  domain          String
+  scopePattern    String
+  precedenceRules Json
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model AuditEvent {
+  id           String         @id @default(uuid())
+  tenantId     String
+  actorId      String
+  actionType   String
+  entityType   String
+  entityId     String
+  payloadHash  String
+  previousHash String?
+  metadata     Json?
+  timestamp    DateTime       @default(now())
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([timestamp])
+}
+
+enum SourceStatus {
+  DRAFT
+  ACTIVE
+  SUPERSEDED
+  ARCHIVED
+}
+
+enum EntailmentRelationship {
+  SUPPORTS
+  CONTRADICTS
+  NEUTRAL
+}
+
+enum DecisionState {
+  SUPPORTED
+  CONDITIONAL
+  CANNOT_ESTABLISH
+}
+
+enum ConflictStatus {
+  DETECTED
+  IN_REVIEW
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+enum ConflictType {
+  DIRECT_CONTRADICTION
+  SCOPE_MISMATCH
+  TEMPORAL_SUPERSEDED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH_RISK
 }
