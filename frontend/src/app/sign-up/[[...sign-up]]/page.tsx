@@ -18,7 +18,7 @@ export default function SignUpPage() {
 
       <div className="relative z-10 w-full max-w-[28rem]">
         <SignUp
-          fallbackRedirectUrl="/dashboard/chat"
+          fallbackRedirectUrl="/dashboard/conflicts"
           signInUrl="/sign-in"
           appearance={clerkAppearance}
         />

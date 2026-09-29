@@ -1,7 +1,7 @@
 {
   "name": "supportmind-ai",
   "version": "1.0.0",
-  "description": "AI-powered B2B SaaS support assistant platform",
+  "description": "Operational evidence intelligence. Evidence first, answer second.",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
@@ -24,7 +24,6 @@
   },
   "keywords": [
     "ai",
-    "saas",
     "support",
     "chatbot",
     "rag",
@@ -33,7 +32,8 @@
     "automation"
   ],
   "author": "Johan Gabriel Vásquez Camacho",
-  "license": "MIT",
+  "private": true,
+  "license": "UNLICENSED",
   "overrides": {
     "postcss": "^8.5.10",
     "picomatch": "^4.0.4",

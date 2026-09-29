@@ -26,6 +26,12 @@
 
 Unlike traditional conversational RAG assistants that optimize for *generating an answer at all costs*, MERIDAS optimizes for **whether an answer deserves to be given**.
 
+This is a private operational system, not a public subscription product. The circuit that distinguishes it:
+
+1. **Ingest writes the evidence graph.** A document becomes a source, a version, passages, and claims. A later revision of the same document stays active beside the previous one and opens a conflict.
+2. **The chat reads that graph.** Retrieval drops passages whose version is `SUPERSEDED`. If evidence is missing or the active versions contradict, the answer is refused.
+3. **Adjudication changes the next answer.** On the conflict desk a person declares which claim stays. The other version is marked `SUPERSEDED`, and the following question no longer retrieves it.
+
 ### Core Tenet: Evidence first. Answer second.
 
 When an operator, systems engineer, or compliance officer queries MERIDAS:
@@ -141,7 +147,6 @@ erDiagram
 | **Vector Engine** | Pinecone Vector Store (768-dimensional cosine index) |
 | **Database & ORM** | PostgreSQL (Neon AWS Serverless) with Prisma ORM |
 | **Authentication** | Clerk (JWT token verification with zero-trust tenant resolution) |
-| **Payments** | Stripe Checkout (Multi-tiered operational plans) |
 | **Communications** | Brevo (Transactional email & notifications), ElevenLabs (Voice synthesis) |
 
 ---
@@ -210,10 +215,7 @@ PINECONE_INDEX_NAME="supportmind"
 EMBEDDING_MODEL="gemini-embedding-001"
 EMBEDDING_DIMENSIONS=768
 
-# Billing & Communications
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_BASIC_PRICE_ID="price_..."
-STRIPE_PRO_PRICE_ID="price_..."
+# Communications
 BREVO_API_KEY="xkeysib-..."
 ```
 
@@ -428,4 +430,6 @@ npm run build
 
 ## 12. License
 
-This project is licensed under the [MIT License](LICENSE).
+Proprietary software. All rights reserved. See [LICENSE](LICENSE).
+
+The source is not open source. You may not copy, modify, distribute, sublicense, or run it except with written permission from the copyright holder. Paying for the hosted service does not grant a right to the source code. Third-party dependencies remain under their own licenses.

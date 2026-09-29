@@ -24,6 +24,7 @@ import {
   VolumeX,
   Copy,
   Check,
+  Star,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -693,9 +694,8 @@ export default function ChatPage() {
         {/* AI Notice Banner */}
         <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#1C1B20]/90 px-6 sm:px-14 py-2 text-xs text-[#8C8A94] font-sans shrink-0">
           <div className="flex items-center gap-2">
-            <span className="flex size-2 rounded-full bg-[#C9A227] animate-pulse" />
-            <span className="font-semibold text-[#F7F3EA]">AI Assistant Notice:</span>
-            <span>You are chatting with an AI assistant. All responses are verified against official company documentation.</span>
+            <Star className="size-3 fill-[#C9A227] text-[#C9A227]" />
+            <span>You are chatting with an AI assistant.</span>
           </div>
         </div>
 
@@ -711,12 +711,8 @@ export default function ChatPage() {
               </div>
 
               <div className="space-y-2 max-w-lg">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/15 border border-[#C9A227]/30 text-xs font-semibold text-[#C9A227]">
-                  <span className="size-1.5 rounded-full bg-[#C9A227] animate-pulse" />
-                  <span>AI Support Assistant</span>
-                </div>
                 <h3 className="text-2xl font-bold tracking-tight text-[#F7F3EA] font-sans">
-                  MERIDAS Support Assistant
+                  Meridas assistant
                 </h3>
                 <p className="font-sans text-xs text-[#C9A227] tracking-wide font-medium">
                   Evidence first. Answer second.

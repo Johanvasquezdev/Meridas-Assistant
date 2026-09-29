@@ -9,6 +9,8 @@ export interface ResolveConflictInput {
   decision: 'OVERRIDE_AUTHORITY' | 'MARK_FALSE_POSITIVE' | 'REQUEST_DOC_UPDATE';
   scopeOverride?: string;
   rationale: string;
+  /** Claim that remains in force. The other claim's version becomes SUPERSEDED. */
+  authoritativeClaimId?: string;
 }
 
 @Injectable()
@@ -52,6 +54,10 @@ export class ConflictsService {
   async resolveConflict(input: ResolveConflictInput) {
     const conflict = await this.prisma.conflict.findFirst({
       where: { id: input.conflictId, tenantId: input.tenantId },
+      include: {
+        claimA: { select: { id: true, sourceVersionId: true } },
+        claimB: { select: { id: true, sourceVersionId: true } },
+      },
     });
 
     if (!conflict) {
@@ -98,9 +104,32 @@ export class ConflictsService {
           entityType: 'Conflict',
           entityId: input.conflictId,
           payloadHash,
-          metadata: { rationale: input.rationale, decision: input.decision },
+          metadata: {
+            rationale: input.rationale,
+            decision: input.decision,
+            authoritativeClaimId: input.authoritativeClaimId,
+          },
         },
       });
+
+      if (input.decision === 'OVERRIDE_AUTHORITY' && input.authoritativeClaimId) {
+        const winnerIsA = input.authoritativeClaimId === conflict.claimA.id;
+        const winnerIsB = input.authoritativeClaimId === conflict.claimB.id;
+        if (!winnerIsA && !winnerIsB) {
+          throw new BadRequestException('authoritativeClaimId must be one of the two claims in this conflict');
+        }
+        const winner = winnerIsA ? conflict.claimA : conflict.claimB;
+        const loser = winnerIsA ? conflict.claimB : conflict.claimA;
+        if (loser.sourceVersionId && winner.sourceVersionId && loser.sourceVersionId !== winner.sourceVersionId) {
+          await tx.sourceVersion.update({
+            where: { id: loser.sourceVersionId },
+            data: {
+              status: 'SUPERSEDED',
+              supersededById: winner.sourceVersionId,
+            },
+          });
+        }
+      }
 
       return [updated, dec];
     });

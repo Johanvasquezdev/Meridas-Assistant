@@ -9,6 +9,7 @@ import { FileTextService } from './file-text.service';
 import { AiModule } from '../ai/ai.module';
 import { TablesService } from './tables.service';
 import { InsightsService } from './insights.service';
+import { EvidenceGraphService } from './evidence-graph.service';
 
 @Module({
   imports: [AiModule],
@@ -22,8 +23,8 @@ import { InsightsService } from './insights.service';
     FileTextService,
     TablesService,
     InsightsService,
+    EvidenceGraphService,
   ],
-  // RAG module imports EmbeddingService + VectorService for query-time retrieval
-  exports: [VectorService, EmbeddingService, DocumentsService],
+  exports: [VectorService, EmbeddingService, DocumentsService, EvidenceGraphService],
 })
 export class DocumentsModule {}

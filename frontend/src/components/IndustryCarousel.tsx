@@ -10,10 +10,10 @@ const industries = [
     label: "Audit compliance",
   },
   {
-    title: "Mission-Critical SaaS",
-    description: "Deliver API and documentation-grounded answers to developer and enterprise client inquiries.",
-    metric: "80%",
-    label: "Faster ticket triage",
+    title: "Infrastructure procedures",
+    description: "Hold an old VPN standard beside the current one until someone declares which port and MFA the next answer may cite.",
+    metric: "2",
+    label: "Versions in conflict",
   },
   {
     title: "Healthcare & Regulatory Services",

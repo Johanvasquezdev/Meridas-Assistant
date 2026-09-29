@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   Index,
   Pinecone,
@@ -28,12 +29,15 @@ export interface RetrievedChunk {
 }
 
 @Injectable()
-export class VectorService {
+export class VectorService implements OnModuleInit {
   private readonly logger = new Logger(VectorService.name);
   private readonly store = new Map<string, VectorRecord>();
   private readonly index?: Index<VectorMetadata>;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @Optional() private readonly prisma?: PrismaService,
+  ) {
     const apiKey = this.config.get<string>('PINECONE_API_KEY');
     const indexName =
       this.config.get<string>('PINECONE_INDEX_NAME') ??
@@ -44,7 +48,34 @@ export class VectorService {
       this.index = pinecone.index<VectorMetadata>({ name: indexName });
       this.logger.log(`Using Pinecone index "${indexName}"`);
     } else {
-      this.logger.warn('Pinecone is not configured; using in-memory vectors');
+      this.logger.warn(
+        'Pinecone is not configured; vectors are stored in PostgreSQL',
+      );
+    }
+  }
+
+  async onModuleInit(): Promise<void> {
+    if (this.index || !this.prisma) return;
+
+    try {
+      const rows = await this.prisma.storedVector.findMany();
+      for (const row of rows) {
+        this.store.set(row.id, {
+          id: row.id,
+          values: row.values,
+          metadata: {
+            tenantId: row.tenantId,
+            text: row.text,
+            documentId: row.documentId ?? undefined,
+            chunkIndex: row.chunkIndex ?? undefined,
+          },
+        });
+      }
+      this.logger.log(`Loaded ${rows.length} vectors from the database`);
+    } catch (error) {
+      this.logger.warn(
+        `Could not load stored vectors. Apply the database schema before ingesting. ${error instanceof Error ? error.message : ''}`,
+      );
     }
   }
 
@@ -80,6 +111,10 @@ export class VectorService {
     if (this.index) {
       await this.index.upsert({ records });
       return;
+    }
+
+    if (this.prisma) {
+      await this.persist(records);
     }
 
     for (const record of records) {
@@ -182,6 +217,12 @@ export class VectorService {
       return;
     }
 
+    if (this.prisma) {
+      await this.prisma.storedVector.deleteMany({
+        where: { tenantId, documentId },
+      });
+    }
+
     for (const [id, record] of this.store.entries()) {
       if (
         record.metadata.tenantId === tenantId &&
@@ -268,6 +309,29 @@ export class VectorService {
       throw new BadRequestException(
         `${method} requires a non-empty tenantId`,
       );
+    }
+  }
+
+  private async persist(records: PineconeRecord<VectorMetadata>[]): Promise<void> {
+    if (!this.prisma) return;
+
+    for (const record of records) {
+      const data = {
+        tenantId: record.metadata.tenantId,
+        documentId: record.metadata.documentId ?? null,
+        chunkIndex:
+          typeof record.metadata.chunkIndex === 'number'
+            ? record.metadata.chunkIndex
+            : null,
+        text: record.metadata.text,
+        values: record.values ?? [],
+      };
+
+      await this.prisma.storedVector.upsert({
+        where: { id: record.id },
+        create: { id: record.id, ...data },
+        update: data,
+      });
     }
   }
 

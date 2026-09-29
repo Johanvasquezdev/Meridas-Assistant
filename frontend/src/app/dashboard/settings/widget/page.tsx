@@ -62,8 +62,8 @@ export default function WidgetSettingsPage() {
         primaryColor: '#9E1B32',
         position: 'bottom-right',
         placeholder: 'Query verified operational directives...',
-        title: 'MERIDAS Intelligence',
-        welcomeMessage: 'Institutional Knowledge Console. Ask any operational query grounded in verified enterprise directives.',
+        title: 'Meridas assistant',
+        welcomeMessage: 'Hello. I am the Meridas assistant. Ask about your organization\'s policies, SOPs, and operating procedures.',
         isEnabled: true,
         allowedOrigins: [],
       });
@@ -145,7 +145,7 @@ export default function WidgetSettingsPage() {
           </div>
           <h1 className="text-3xl font-bold text-[#F7F3EA] tracking-tight">Website Chat Widget</h1>
           <p className="text-[#8C8A94] mt-1 text-sm">
-            Embed the MERIDAS AI assistant directly into your company website, internal wiki, or customer portal.
+            Embed the Meridas assistant on your company website, internal wiki, or portal.
           </p>
         </div>
         <button

@@ -5,33 +5,33 @@ import { motion } from "framer-motion";
 const features = [
   {
     id: "01",
-    title: "Verified Answers with Citations",
-    description: "Every response is backed by exact references from your manuals and policies. Meridas never guesses or invents answers.",
+    title: "Evidence before the answer",
+    description: "Meridas retrieves passages first. If they do not support the question, the answer is refused.",
   },
   {
     id: "02",
-    title: "Policy & Guideline Alignment",
-    description: "Answers always follow your current company rules, customer agreements, and active operating procedures.",
+    title: "Three decision states",
+    description: "Supported, conditional, or refused. A contradiction is a refusal, not a blend of both procedures.",
   },
   {
     id: "03",
-    title: "Private & Secure Workspaces",
-    description: "Strict workspace isolation ensures your proprietary documents are encrypted, private, and never used to train public models.",
+    title: "Versions stay visible",
+    description: "A new revision does not erase the previous one. Both remain until someone on the conflict desk decides.",
   },
   {
     id: "04",
-    title: "Smart Document Library",
-    description: "Easily upload PDFs, manuals, and policy documents with automatic organization and fast, accurate search.",
+    title: "The graph is what the chat reads",
+    description: "Ingest writes sources, versions, passages, and claims. Retrieval uses that graph, not an unbound document pile.",
   },
   {
     id: "05",
-    title: "Real-Time Voice Assistant",
-    description: "Natural, low-latency voice interaction powered by ElevenLabs, allowing team members and customers to ask questions aloud.",
+    title: "A person declares the binding version",
+    description: "Adjudication records who decided, why, and which claim remains in force.",
   },
   {
     id: "06",
-    title: "Embeddable Website Widget",
-    description: "Add Meridas to your company intranet, customer portal, or public website with a single line of script.",
+    title: "The next answer changes",
+    description: "The losing version is marked superseded and drops out of the following retrieval.",
   },
 ];
 
@@ -39,11 +39,9 @@ export function Features() {
   return (
     <section id="features" className="py-[120px] border-b border-[#2A2832] bg-[#151417] font-sans">
       <div className="mx-auto max-w-[1240px] px-6">
-        
-        {/* Header */}
         <div className="mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] border border-[#C9A227]/30 bg-[#9E1B32]/10 mb-4">
-            <span className="font-sans text-xs uppercase tracking-wider text-[#C9A227] font-semibold">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-[6px] border border-[#C9A227]/40 bg-[#9E1B32]/15 px-3 py-1">
+            <span className="font-sans text-xs font-semibold uppercase tracking-wider text-[#C9A227]">
               Built For Reliability
             </span>
           </div>
@@ -51,12 +49,11 @@ export function Features() {
             Answers You Can Count On
           </h2>
           <p className="font-sans text-[16px] text-[#8C8A94] max-w-[600px]">
-            Where generic chatbots fail, Meridas provides accurate, cited, and dependable support intelligence.
+            The difference is the circuit: ingest writes the graph, the chat reads it, and a human decision changes the next answer.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-[#2A2832] rounded-[16px] overflow-hidden border border-[#2A2832]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px overflow-hidden rounded-[16px] border border-[#C9A227]/25 bg-[#C9A227]/20">
           {features.map((feature, idx) => (
             <motion.div
               key={feature.id}
@@ -64,9 +61,9 @@ export function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.08 }}
-              className="group flex items-start gap-6 p-10 bg-[#1C1B20] hover:bg-[#232128] transition-all border-l-2 border-l-transparent hover:border-l-[#C9A227]"
+              className="group flex items-start gap-6 border-l-2 border-l-transparent bg-[#1C1B20] p-10 transition-all hover:border-l-[#9E1B32] hover:bg-[#1C1B20]"
             >
-              <span className="font-sans text-[16px] font-bold text-[#C9A227] group-hover:scale-110 transition-transform">
+              <span className="font-sans text-[16px] font-bold text-[#C9A227] transition-transform group-hover:scale-110">
                 {feature.id}
               </span>
               <div>
@@ -80,7 +77,6 @@ export function Features() {
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
   );

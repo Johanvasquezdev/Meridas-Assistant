@@ -19,6 +19,7 @@ describe('ConflictsService', () => {
       },
       sourceVersion: {
         count: jest.fn().mockResolvedValue(5),
+        update: jest.fn(),
       },
       auditEvent: {
         count: jest.fn().mockResolvedValue(12),
@@ -120,6 +121,32 @@ describe('ConflictsService', () => {
       );
 
       expect(result.conflict.status).toBe('RESOLVED');
+      expect(prisma.sourceVersion.update).not.toHaveBeenCalled();
+    });
+
+    it('marks the losing source version SUPERSEDED when an authority is declared', async () => {
+      prisma.conflict.findFirst.mockResolvedValueOnce({
+        id: 'conf-1',
+        tenantId: 'tenant-1',
+        claimA: { id: 'claim-a', sourceVersionId: 'version-old' },
+        claimB: { id: 'claim-b', sourceVersionId: 'version-new' },
+      });
+      prisma.conflict.update.mockResolvedValueOnce({ id: 'conf-1', status: 'RESOLVED' });
+      prisma.reviewDecision.create.mockResolvedValueOnce({ id: 'dec-1' });
+
+      await service.resolveConflict({
+        conflictId: 'conf-1',
+        userId: 'user-1',
+        tenantId: 'tenant-1',
+        decision: 'OVERRIDE_AUTHORITY',
+        authoritativeClaimId: 'claim-b',
+        rationale: 'v3.0 is the binding HQ procedure.',
+      });
+
+      expect(prisma.sourceVersion.update).toHaveBeenCalledWith({
+        where: { id: 'version-old' },
+        data: { status: 'SUPERSEDED', supersededById: 'version-new' },
+      });
     });
   });
 

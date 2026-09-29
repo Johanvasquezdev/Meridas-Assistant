@@ -208,4 +208,99 @@ describe('VectorService', () => {
       expect(() => service.getByTenant('')).toThrow(BadRequestException);
     });
   });
+
+  describe('database fallback', () => {
+    function localDatabase() {
+      const rows = new Map<string, {
+        id: string;
+        tenantId: string;
+        documentId: string | null;
+        chunkIndex: number | null;
+        text: string;
+        values: number[];
+      }>();
+
+      return {
+        storedVector: {
+          findMany: async () => [...rows.values()],
+          upsert: async ({
+            where,
+            create,
+            update,
+          }: {
+            where: { id: string };
+            create: {
+              id: string;
+              tenantId: string;
+              documentId: string | null;
+              chunkIndex: number | null;
+              text: string;
+              values: number[];
+            };
+            update: {
+              tenantId: string;
+              documentId: string | null;
+              chunkIndex: number | null;
+              text: string;
+              values: number[];
+            };
+          }) => {
+            const next = rows.has(where.id)
+              ? { id: where.id, ...update }
+              : create;
+            rows.set(where.id, next);
+            return next;
+          },
+          deleteMany: async ({
+            where,
+          }: {
+            where: { tenantId: string; documentId: string };
+          }) => {
+            let count = 0;
+            for (const [id, row] of rows) {
+              if (
+                row.tenantId === where.tenantId &&
+                row.documentId === where.documentId
+              ) {
+                rows.delete(id);
+                count += 1;
+              }
+            }
+            return { count };
+          },
+        },
+      };
+    }
+
+    it('reloads vectors after a restart when Pinecone is absent', async () => {
+      const database = localDatabase();
+      const config = { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService;
+      const first = new VectorService(config, database as never);
+      await first.upsert([
+        makeRecord('doc-1-0', 'tenant-a', 'doc-1', [1, 0], 'kept'),
+      ]);
+
+      const restarted = new VectorService(config, database as never);
+      await restarted.onModuleInit();
+
+      expect(restarted.size).toBe(1);
+      const results = await restarted.query([1, 0], 'tenant-a', 5);
+      expect(results.map((result) => result.text)).toEqual(['kept']);
+    });
+
+    it('drops a deleted document from the database', async () => {
+      const database = localDatabase();
+      const config = { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService;
+      const first = new VectorService(config, database as never);
+      await first.upsert([makeRecord('a-1', 'tenant-a', 'doc-1', [1, 0])]);
+      await first.upsert([makeRecord('b-1', 'tenant-b', 'doc-1', [0, 1])]);
+      await first.deleteByDocument('tenant-a', 'doc-1');
+
+      const restarted = new VectorService(config, database as never);
+      await restarted.onModuleInit();
+
+      expect(restarted.getByTenant('tenant-a')).toHaveLength(0);
+      expect(restarted.getByTenant('tenant-b')).toHaveLength(1);
+    });
+  });
 });

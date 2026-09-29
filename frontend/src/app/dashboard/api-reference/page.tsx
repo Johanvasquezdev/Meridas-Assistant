@@ -831,7 +831,7 @@ print(f"Answer: {data.get('answer')}")`}
                   <code className="text-xl font-mono text-[#F7F3EA]">/api/v1/usage</code>
                 </div>
                 <p className="text-sm text-[#8C8A94] leading-relaxed">
-                  Real-time telemetry on token usage, request throttles, and remaining billing cycle quotas.
+                  Telemetry on token usage and request throttles for this tenant.
                 </p>
               </div>
 
@@ -842,7 +842,6 @@ print(f"Answer: {data.get('answer')}")`}
 
               <div className="bg-[#1C1B20] border border-[#2A2832] rounded-[12px] p-5 font-mono text-xs text-[#F7F3EA] leading-relaxed overflow-x-auto">
 {`{
-  "plan": "pro",
   "period": {
     "start": "2026-09-01T00:00:00.000Z",
     "end": "2026-10-01T00:00:00.000Z"
@@ -923,13 +922,13 @@ print(f"Answer: {data.get('answer')}")`}
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-mono text-amber-400">403 Forbidden</td>
-                      <td className="py-3 px-4 text-[#8C8A94]">Feature or widget disabled for tenant.</td>
-                      <td className="py-3 px-4 text-[#8C8A94]">Enable widget or check subscription plan.</td>
+                      <td className="py-3 px-4 text-[#8C8A94]">Feature disabled for this tenant.</td>
+                      <td className="py-3 px-4 text-[#8C8A94]">Enable the feature in tenant settings.</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-mono text-[#DFB943]">429 Too Many Requests</td>
-                      <td className="py-3 px-4 text-[#8C8A94]">Exceeded rate limit or monthly token quota.</td>
-                      <td className="py-3 px-4 text-[#8C8A94]">Apply exponential backoff or upgrade tier.</td>
+                      <td className="py-3 px-4 text-[#8C8A94]">Exceeded the request rate limit.</td>
+                      <td className="py-3 px-4 text-[#8C8A94]">Apply exponential backoff and retry.</td>
                     </tr>
                   </tbody>
                 </table>

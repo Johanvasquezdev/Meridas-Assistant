@@ -47,6 +47,7 @@ export class ConflictsController {
       decision: 'OVERRIDE_AUTHORITY' | 'MARK_FALSE_POSITIVE' | 'REQUEST_DOC_UPDATE';
       scopeOverride?: string;
       rationale: string;
+      authoritativeClaimId?: string;
     },
   ) {
     const userId = req.user?.userId || 'unknown-user';
@@ -57,6 +58,7 @@ export class ConflictsController {
       decision: body.decision,
       scopeOverride: body.scopeOverride,
       rationale: body.rationale,
+      authoritativeClaimId: body.authoritativeClaimId,
     });
   }
 

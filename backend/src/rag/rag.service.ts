@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { VectorMetadata } from '../documents/ingestion';
+import { EvidenceGraphService } from '../documents/evidence-graph.service';
 import { SearchService } from '../search/search.service';
 
 export interface RagChunk {
@@ -19,7 +20,10 @@ export class RagService {
 
   private readonly logger = new Logger(RagService.name);
 
-  constructor(private readonly searchService: SearchService) {}
+  constructor(
+    private readonly searchService: SearchService,
+    private readonly evidenceGraph: EvidenceGraphService,
+  ) {}
 
   async retrieve(
     query: string,
@@ -47,7 +51,7 @@ export class RagService {
       `RAG hybrid retrieval returned ${results.length} chunks for tenant=${cleanTenantId}`,
     );
 
-    return results.map((result) => ({
+    const chunks = results.map((result) => ({
       vectorId: result.chunkId,
       score: result.hybridScore,
       text: result.text,
@@ -59,6 +63,8 @@ export class RagService {
         chunkIndex: result.chunkIndex,
       },
     }));
+
+    return this.evidenceGraph.excludeSuperseded(cleanTenantId, chunks);
   }
 
   private clampTopK(topK: number): number {

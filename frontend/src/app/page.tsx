@@ -5,7 +5,6 @@ import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
 import { IndustryCarousel } from "@/components/IndustryCarousel";
 import { Navbar } from "@/components/Navbar";
-import { Pricing } from "@/components/Pricing";
 import { Security } from "@/components/Security";
 import { Stats } from "@/components/Stats";
 
@@ -18,7 +17,6 @@ export default function HomePage() {
       <HowItWorks />
       <Features />
       <IndustryCarousel />
-      <Pricing />
       <Security />
       <FAQ />
       <Footer />

@@ -3,6 +3,8 @@ import { ChunkingService, Chunk, ChunkingOptions } from './chunking.service';
 import { EmbeddingService, EmbeddingResult } from './embedding.service';
 import { VectorRecord, VectorService } from './vector.service';
 import { DocumentsService } from '../documents.service';
+import { EvidenceGraphService } from '../evidence-graph.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 /**
  * Represents a single chunk after embedding — the enriched object
@@ -55,6 +57,8 @@ export class IngestionService {
     private readonly chunking: ChunkingService,
     private readonly embedding: EmbeddingService,
     private readonly vectorService: VectorService,
+    private readonly evidenceGraph: EvidenceGraphService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -81,8 +85,26 @@ export class IngestionService {
         return;
       }
 
+      const plan = await this.evidenceGraph.planVersion(tenantId, documentId, content);
+      if (plan.unchanged) {
+        const existingChunks = await this.prisma.documentChunk.count({
+          where: { tenantId, documentId },
+        });
+        if (existingChunks > 0) {
+          await this.documentsService.setStatus(tenantId, documentId, 'READY');
+          this.logger.log(`[${documentId}] evidence graph already current — skipped`);
+          return;
+        }
+      }
+
+      const versionedChunks = chunks.map((chunk, index) => ({
+        ...chunk,
+        index: plan.indexOffset + index,
+        vectorId: `${tenantId}-${documentId}-${plan.versionNumber}-${index}`,
+      }));
+
       // 2. Generate Gemini embeddings for each chunk
-      const embeddedChunks = await this.generateEmbeddings(documentId, tenantId, chunks);
+      const embeddedChunks = await this.generateEmbeddings(documentId, tenantId, versionedChunks);
 
       this.logger.log(
         `[${documentId}] Embedded ${embeddedChunks.length} chunks ` +
@@ -102,6 +124,20 @@ export class IngestionService {
         vectorId: ec.vectorId,
       }));
       await this.documentsService.persistChunks(chunkRows);
+
+      if (!plan.unchanged) {
+        await this.evidenceGraph.commitVersion({
+          tenantId,
+          documentId,
+          fileHash: plan.fileHash,
+          versionNumber: plan.versionNumber,
+          chunks: embeddedChunks.map((chunk) => ({
+            chunkIndex: chunk.chunkIndex,
+            text: chunk.text,
+            vectorId: chunk.vectorId,
+          })),
+        });
+      }
 
       await this.documentsService.setStatus(tenantId, documentId, 'READY');
       this.logger.log(`[${documentId}] ingestion complete — ${embeddedChunks.length} chunks persisted`);
@@ -144,7 +180,7 @@ export class IngestionService {
       tenantId,
       documentId,
       chunkIndex: chunk.index,
-      vectorId: `${tenantId}-${documentId}-${chunk.index}`,
+      vectorId: chunk.vectorId ?? `${tenantId}-${documentId}-${chunk.index}`,
       tokenEstimate: chunk.tokenEstimate,
       embeddingModel: embeddings[i].model,
       dimensions: embeddings[i].dimensions,

@@ -105,6 +105,7 @@ export default function ConflictsPage() {
   >("OVERRIDE_AUTHORITY");
   const [adjudicationRationale, setAdjudicationRationale] = useState("");
   const [adjudicationScope, setAdjudicationScope] = useState("");
+  const [authoritativeClaimId, setAuthoritativeClaimId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentReceipt, setRecentReceipt] = useState<{
     conflictId: string;
@@ -150,6 +151,8 @@ export default function ConflictsPage() {
         decision: adjudicationDecision,
         scopeOverride: adjudicationScope.trim() || undefined,
         rationale: adjudicationRationale.trim(),
+        authoritativeClaimId:
+          adjudicationDecision === "OVERRIDE_AUTHORITY" ? authoritativeClaimId : undefined,
       });
 
       setRecentReceipt({
@@ -162,6 +165,7 @@ export default function ConflictsPage() {
       setSelectedConflict(null);
       setAdjudicationRationale("");
       setAdjudicationScope("");
+      setAuthoritativeClaimId("");
       await fetchData(true);
     } catch (err: any) {
       console.error("Resolution failed", err);
@@ -514,6 +518,7 @@ export default function ConflictsPage() {
                           onClick={() => {
                             setSelectedConflict(c);
                             setAdjudicationDecision("OVERRIDE_AUTHORITY");
+                            setAuthoritativeClaimId(c.claimB?.id || c.claimBId);
                           }}
                           className="px-3.5 py-1.5 rounded-[8px] bg-[#9E1B32] hover:bg-[#BA243F] border border-[#C9A227]/40 text-xs font-mono font-bold text-[#F7F3EA] shadow-md shadow-[#9E1B32]/25 transition-all"
                         >
@@ -562,7 +567,12 @@ export default function ConflictsPage() {
                   <button
                     key={act.id}
                     type="button"
-                    onClick={() => setAdjudicationDecision(act.id as any)}
+                    onClick={() => {
+                      setAdjudicationDecision(act.id as any);
+                      if (act.id === "OVERRIDE_AUTHORITY" && !authoritativeClaimId) {
+                        setAuthoritativeClaimId(selectedConflict.claimB?.id || selectedConflict.claimBId);
+                      }
+                    }}
                     className={cn(
                       "p-2.5 rounded-[8px] border text-center font-mono text-[10px] font-bold uppercase tracking-wider transition-all",
                       adjudicationDecision === act.id
@@ -577,6 +587,36 @@ export default function ConflictsPage() {
             </div>
 
             {/* Scope override */}
+            {adjudicationDecision === "OVERRIDE_AUTHORITY" && selectedConflict && (
+              <div className="space-y-2">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-[#8C8A94]">
+                  Version that stays in the next answer
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[selectedConflict.claimA, selectedConflict.claimB].filter(Boolean).map((claim) => (
+                    <button
+                      key={claim.id}
+                      type="button"
+                      onClick={() => setAuthoritativeClaimId(claim.id)}
+                      className={cn(
+                        "p-2.5 rounded-[8px] border text-left transition-all",
+                        authoritativeClaimId === claim.id
+                          ? "bg-[#9E1B32] border-[#C9A227] text-[#F7F3EA]"
+                          : "bg-[#151417] border-white/10 text-[#8C8A94]"
+                      )}
+                    >
+                      <div className="font-mono text-[10px] font-bold uppercase tracking-wider">
+                        {claim.sourceVersion?.versionNumber || "Version"}
+                      </div>
+                      <div className="mt-1 text-[10px] leading-snug line-clamp-2">
+                        {claim.statement}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {adjudicationDecision === "OVERRIDE_AUTHORITY" && (
               <div className="space-y-1.5">
                 <label className="font-mono text-[9px] uppercase tracking-widest text-[#8C8A94]">

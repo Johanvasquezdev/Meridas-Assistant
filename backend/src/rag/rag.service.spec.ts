@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { EvidenceGraphService } from '../documents/evidence-graph.service';
 import { SearchService } from '../search/search.service';
 import { RagService } from './rag.service';
 
@@ -22,7 +23,13 @@ describe('RagService', () => {
       ]),
     };
 
-    service = new RagService(searchService as unknown as SearchService);
+    const evidenceGraph = {
+      excludeSuperseded: jest.fn(async (_tenantId: string, chunks: unknown[]) => chunks),
+    };
+    service = new RagService(
+      searchService as unknown as SearchService,
+      evidenceGraph as unknown as EvidenceGraphService,
+    );
   });
 
   it('retrieves hybrid search results and preserves the RagChunk interface', async () => {

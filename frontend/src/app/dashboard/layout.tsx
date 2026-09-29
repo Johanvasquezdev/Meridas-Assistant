@@ -7,7 +7,6 @@ import { clerkUserProfileAppearance } from "@/lib/clerk-appearance";
 import {
   MessageSquare,
   Settings,
-  CreditCard,
   FileText,
   ChevronLeft,
   ChevronRight,
@@ -29,13 +28,12 @@ import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { MeridasIcon } from "@/components/brand/MeridasLogo";
 
 const sidebarLinks = [
-  { label: "AI Chat Assistant", href: "/dashboard/chat", icon: MessageSquare },
+  { label: "Assistant", href: "/dashboard/chat", icon: MessageSquare },
   { label: "Knowledge Vault", href: "/dashboard/documents", icon: FileText },
   { label: "Conflict Desk", href: "/dashboard/conflicts", icon: Scale },
   { label: "Evidence Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { label: "API Governance", href: "/dashboard/api-reference", icon: Code },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
-  { label: "Billing & Plans", href: "/billing", icon: CreditCard },
 ];
 
 export default function DashboardLayout({
@@ -174,13 +172,13 @@ export default function DashboardLayout({
                 </span>
               </div>
               <p className="text-[11px] text-[#8C8A94] leading-relaxed mb-2.5 font-sans">
-                Every response is cross-checked against official company guidelines.
+                A superseded version stays out of the next answer.
               </p>
               <Link
-                href="/billing"
+                href="/dashboard/conflicts"
                 className="block text-center py-1.5 px-3 rounded-[6px] bg-[#9E1B32]/30 hover:bg-[#9E1B32]/50 border border-[#C9A227]/40 text-xs font-sans text-[#C9A227] font-medium transition-all"
               >
-                View Plans & Usage
+                Open the conflict desk
               </Link>
             </div>
           )}
@@ -188,26 +186,32 @@ export default function DashboardLayout({
           {/* User Profile */}
           <div className="border-t border-border px-3 py-3 font-sans">
             <div className={cn(
-              "flex items-center gap-3 rounded-[8px] px-2 py-1.5",
-              collapsed ? "justify-center" : "justify-start"
+              "flex items-center gap-2.5 rounded-[8px] px-1",
+              collapsed ? "justify-center" : "min-w-0"
             )}>
-              <UserButton
-                userProfileProps={{
-                  appearance: clerkUserProfileAppearance,
-                }}
-                appearance={{
-                  elements: {
-                    avatarBox:
-                      "size-8 border-2 border-[#C9A227]/60 rounded-[8px]",
-                  },
-                }}
-              />
+              <div className="shrink-0 [&_.cl-userButtonBox]:!w-auto [&_.cl-userButtonTrigger]:!w-auto [&_.cl-userButtonOuterIdentifier]:!hidden">
+                <UserButton
+                  userProfileProps={{
+                    appearance: clerkUserProfileAppearance,
+                  }}
+                  appearance={{
+                    elements: {
+                      rootBox: "shrink-0",
+                      userButtonBox: "w-auto shrink-0",
+                      userButtonTrigger: "w-auto shrink-0 p-0",
+                      userButtonOuterIdentifier: "hidden",
+                      avatarBox:
+                        "size-8 border-2 border-[#C9A227]/60 rounded-full",
+                    },
+                  }}
+                />
+              </div>
               {!collapsed && (
-                <div className="flex flex-col min-w-0 overflow-hidden font-sans">
-                  <p className="text-xs font-bold text-[#F7F3EA] leading-snug">
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5 font-sans">
+                  <p className="truncate text-[13px] font-semibold leading-4 text-[#F7F3EA]">
                     {user?.fullName || "Operator"}
                   </p>
-                  <p className="text-[10px] text-[#8C8A94] truncate leading-tight mt-0.5">
+                  <p className="truncate text-[11px] leading-4 text-[#8C8A94]">
                     {user?.primaryEmailAddress?.emailAddress}
                   </p>
                 </div>
@@ -247,10 +251,6 @@ export default function DashboardLayout({
                   (l) => pathname === l.href || pathname.startsWith(l.href + "/")
                 )?.label ?? "Dashboard"}
               </h2>
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/25 text-[11px] text-[#C9A227] font-medium font-sans">
-                <span className="size-1.5 rounded-full bg-[#C9A227] animate-pulse" />
-                <span>AI Assistant Grounded</span>
-              </div>
             </div>
             <div className="flex items-center gap-4">
               {mounted && (

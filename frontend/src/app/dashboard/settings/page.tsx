@@ -116,9 +116,9 @@ export default function SettingsPage() {
         <div className="space-y-4 rounded-[16px] border border-[#2A2832] bg-[#1C1B20] p-6 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h4 className="font-sans text-sm font-bold text-[#F7F3EA]">Embeddable AI Assistant</h4>
+              <h4 className="font-sans text-sm font-bold text-[#F7F3EA]">Meridas assistant</h4>
               <p className="font-sans text-xs text-[#8C8A94] leading-relaxed max-w-xl">
-                Add the MERIDAS AI assistant directly to your company website, intranet, or customer portal. Customize the theme, greeting message, and launcher position.
+                Add the Meridas assistant to your company website, intranet, or portal. Customize the theme, greeting, and launcher position.
               </p>
             </div>
             <Link

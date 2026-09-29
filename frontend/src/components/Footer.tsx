@@ -6,7 +6,6 @@ import { MeridasLogo } from "./brand/MeridasLogo";
 const platformLinks = [
   { label: "Features", href: "/#features" },
   { label: "How It Works", href: "/#how-it-works" },
-  { label: "Pricing", href: "/#pricing" },
   { label: "Documentation", href: "/docs" },
 ];
 
@@ -30,21 +29,11 @@ export function Footer() {
             </Link>
             <div className="space-y-3">
               <p className="font-sans text-[13px] text-[#8C8A94] max-w-[400px] leading-relaxed">
-                MERIDAS is an AI support intelligence platform grounded in corporate truth.
-                Citations aren&apos;t decoration — they&apos;re a requirement for an answer to be trusted.
+                MERIDAS answers from ingested procedures. If two versions disagree, it refuses until a person declares which one the next answer may use.
               </p>
-              <div className="flex items-center gap-3 pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-[#C9A227] animate-pulse" />
-                  <span className="font-sans text-[11px] text-[#8C8A94] uppercase tracking-wider">
-                    AI Assistant Active
-                  </span>
-                </div>
-                <span className="text-[#2A2832]">|</span>
-                <span className="font-sans text-[11px] text-[#8C8A94]">
-                  © 2026 MERIDAS. All rights reserved.
-                </span>
-              </div>
+              <p className="font-sans text-[11px] text-[#8C8A94] pt-1">
+                © 2026 MERIDAS. All rights reserved.
+              </p>
             </div>
           </div>
 

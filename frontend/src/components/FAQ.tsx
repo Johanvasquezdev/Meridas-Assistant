@@ -6,27 +6,19 @@ import { motion, AnimatePresence } from "framer-motion";
 const faqs = [
   {
     question: "What does \"Evidence first. Answer second.\" mean in practice?",
-    answer: "Unlike traditional generative chatbots that prioritize generating fluent conversational text regardless of factual basis, Meridas operates with mandatory proof gating. It retrieves verified passages from your uploaded documentation first; if no direct evidence is found, it refuses to speculate.",
+    answer: "Meridas retrieves passages from the evidence graph before it writes an answer. If nothing supports the question, or two active versions contradict each other, it refuses instead of producing a fluent guess.",
   },
   {
-    question: "How do inline citations work?",
-    answer: "Every response embeds interactive citation tags [1], [2] linked to exact document sections, pages, and similarity confidence scores. Users and compliance officers can click any citation to view the underlying source excerpt.",
+    question: "What happens when two procedures disagree?",
+    answer: "Ingest keeps both versions and opens a conflict. The chat can refuse while that conflict is open. A person on the conflict desk declares which version stays. The other is marked superseded.",
   },
   {
-    question: "Which AI models power Meridas?",
-    answer: "Meridas is architected to utilize precision RAG models including Cohere Command R+, Google Gemini, and Groq LLaMA models, optimized specifically for grounding, citation extraction, and sub-second latency.",
+    question: "Does that decision change the next answer?",
+    answer: "Yes. Retrieval drops passages that belong to a superseded version. The following question is answered from the version that was declared binding.",
   },
   {
-    question: "Can our proprietary documents be seen by other companies?",
-    answer: "No. Meridas uses strict multi-tenant isolation. Each enterprise customer has isolated vector namespaces, isolated database partitions, and dedicated encryption keys. Your documentation is never exposed or used to train public models.",
-  },
-  {
-    question: "How is Meridas integrated into our existing website or portal?",
-    answer: "You can embed our lightweight JavaScript widget into any web platform with one line of code, or connect your customer portal directly via our authenticated REST and WebSocket APIs.",
-  },
-  {
-    question: "Is voice support included?",
-    answer: "Yes. Meridas integrates low-latency ElevenLabs speech synthesis and transcription, allowing real-time voice interactions backed by the same rigorous evidence verification.",
+    question: "Who is Meridas for?",
+    answer: "Operations and security teams that cannot afford an answer from an outdated procedure. It is a private system for those teams, not a public subscription product.",
   },
 ];
 

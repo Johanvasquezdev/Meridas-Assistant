@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, FileText, CheckCircle2, ShieldCheck, Sparkles, RefreshCw } from "lucide-react";
+import { Send, FileText, CheckCircle2, ShieldCheck, Star } from "lucide-react";
 import { MeridasIcon } from "./brand/MeridasLogo";
 
 interface Scenario {
@@ -16,6 +16,7 @@ interface Scenario {
     source: string;
     page: string;
     confidence: string;
+    fate?: "stays" | "loses";
   }>;
 }
 
@@ -26,19 +27,21 @@ const SCENARIOS: Scenario[] = [
     question: "What is the active port and mandatory MFA method for GlobalProtect VPN?",
     time: "10:14 AM",
     answer:
-      "Under active SOP v3.0 [1], the GlobalProtect VPN gateway routes strictly via Port 8443 (TLS 1.3 Strict). Authentication requires Active Directory credentials combined with mandatory Duo Mobile Push MFA; legacy SMS OTP was permanently decommissioned in Q1 2026 [2].",
+      "Refused. v3.0 [1] routes GlobalProtect on port 8443 with Duo Mobile push. v2.4 [2] still says port 443 and SMS OTP. Two active versions disagree, so there is no blended answer.",
     citations: [
       {
         id: 1,
         source: "SOP-NET-2025-001-v3.0.md",
         page: "§1.2",
-        confidence: "98.4%",
+        confidence: "Stays",
+        fate: "stays",
       },
       {
         id: 2,
         source: "VPN-GlobalProtect-v2.4-Superseded.md",
         page: "§3.1",
-        confidence: "97.2%",
+        confidence: "Superseded",
+        fate: "loses",
       },
     ],
   },
@@ -76,19 +79,29 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+const SETTLED_VPN_ANSWER =
+  "Under v3.0 [1], the GlobalProtect gateway uses port 8443 with TLS 1.3 and mandatory Duo Mobile push. The earlier standard is out of this answer.";
+
 export function ChatDemo() {
   const [activeScenarioIndex, setActiveScenarioIndex] = useState(0);
   const [animationStep, setAnimationStep] = useState<"question" | "thinking" | "answer" | "evidence">("evidence");
-  const [isPaused, setIsPaused] = useState(false);
+  const [vpnSettled, setVpnSettled] = useState(false);
+  const pausedRef = useRef(false);
+  const vpnSettledRef = useRef(false);
 
   const scenario = SCENARIOS[activeScenarioIndex];
+  const vpnConflict = scenario.id === "vpn-mfa" && !vpnSettled;
+  const shownAnswer = scenario.id === "vpn-mfa" && vpnSettled ? SETTLED_VPN_ANSWER : scenario.answer;
+  const shownCitations = scenario.citations.filter(
+    (citation) => !(scenario.id === "vpn-mfa" && vpnSettled && citation.fate === "loses"),
+  );
 
   // Orchestrate progressive animation sequence for current scenario
   useEffect(() => {
     let t1: NodeJS.Timeout;
     let t2: NodeJS.Timeout;
     let t3: NodeJS.Timeout;
-    let t4: NodeJS.Timeout;
+    let t4: NodeJS.Timeout | undefined;
 
     // Start with question appearing
     setAnimationStep("question");
@@ -108,12 +121,14 @@ export function ChatDemo() {
       setAnimationStep("evidence");
     }, 2800);
 
-    // After 9500ms, loop to next scenario if not paused
-    t4 = setTimeout(() => {
-      if (!isPaused) {
-        setActiveScenarioIndex((prev) => (prev + 1) % SCENARIOS.length);
-      }
-    }, 9500);
+    const waitingForDecision = scenario.id === "vpn-mfa" && !vpnSettledRef.current;
+    if (!waitingForDecision) {
+      t4 = setTimeout(() => {
+        if (!pausedRef.current) {
+          setActiveScenarioIndex((prev) => (prev + 1) % SCENARIOS.length);
+        }
+      }, 9500);
+    }
 
     return () => {
       clearTimeout(t1);
@@ -121,36 +136,29 @@ export function ChatDemo() {
       clearTimeout(t3);
       clearTimeout(t4);
     };
-  }, [activeScenarioIndex, isPaused]);
+  }, [activeScenarioIndex, scenario.id]);
 
   return (
     <div
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={() => {
+        pausedRef.current = true;
+      }}
+      onMouseLeave={() => {
+        pausedRef.current = false;
+      }}
       className="w-full max-w-[540px] bg-[#151417] border border-[#2A2832] rounded-[18px] overflow-hidden shadow-2xl shadow-black/90 transition-all duration-300 hover:border-[#C9A227]/40 font-sans"
     >
-      {/* Top Header — MERIDAS AI ASSISTANT + 100% CITED Badge */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#2A2832] bg-[#18171C]">
+      <div className="flex items-center px-5 py-3.5 border-b border-[#2A2832] bg-[#18171C]">
         <div className="flex items-center gap-2.5">
           <MeridasIcon size={20} />
           <span className="font-sans text-xs text-[#F7F3EA] uppercase tracking-wider font-bold">
             MERIDAS AI SUPPORT ASSISTANT
           </span>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[#C9A227]/40 bg-[#C9A227]/10">
-            <span className="size-1.5 rounded-full bg-[#C9A227] animate-pulse" />
-            <span className="font-sans text-[10px] font-bold text-[#C9A227] uppercase tracking-wider">
-              100% CITED
-            </span>
-          </div>
-        </div>
       </div>
 
-      {/* AI Assistant Notice Bar */}
       <div className="flex items-center gap-2 px-5 py-2 bg-[#1C1B20] border-b border-[#2A2832] text-[11px] text-[#C9A227] font-sans">
-        <span className="size-1.5 rounded-full bg-[#C9A227] animate-pulse" />
+        <Star className="size-3 fill-[#C9A227] text-[#C9A227]" />
         <span>AI Assistant Notice: Responses are verified directly from active company policies.</span>
       </div>
 
@@ -214,7 +222,7 @@ export function ChatDemo() {
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-2 p-3 rounded-[10px] bg-[#1C1B20] border border-[#2A2832] w-fit"
               >
-                <div className="size-2 rounded-full bg-[#C9A227] animate-ping" />
+                <Star className="size-3 fill-[#C9A227] text-[#C9A227]" />
                 <span className="font-sans text-xs text-[#C9A227]">
                   Checking answers against {scenario.badge}...
                 </span>
@@ -229,8 +237,13 @@ export function ChatDemo() {
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="p-4 rounded-[14px] bg-[#1C1B20] border border-[#2A2832] text-[#F7F3EA] font-sans text-[13px] leading-relaxed space-y-3 shadow-lg"
               >
+                {scenario.id === "vpn-mfa" && vpnSettled && (
+                  <p className="font-sans text-[10px] font-bold uppercase tracking-wider text-[#C9A227]">
+                    Same question. Next answer.
+                  </p>
+                )}
                 <p className="text-[#F7F3EA]/90 leading-relaxed">
-                  {scenario.answer.split(/(\[\d+\])/).map((part, i) => {
+                  {shownAnswer.split(/(\[\d+\])/).map((part, i) => {
                     if (/^\[\d+\]$/.test(part)) {
                       return (
                         <span
@@ -254,35 +267,63 @@ export function ChatDemo() {
                     className="pt-2 border-t border-[#2A2832] space-y-2 overflow-hidden"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-sans text-xs font-bold text-[#C9A227] uppercase tracking-wider flex items-center gap-1.5">
-                        <CheckCircle2 className="size-3 text-[#C9A227]" />
-                        VERIFIED SOURCES:
+                      <span className={`font-sans text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${vpnConflict ? "text-[#BA243F]" : "text-[#C9A227]"}`}>
+                        <CheckCircle2 className={`size-3 ${vpnConflict ? "text-[#BA243F]" : "text-[#C9A227]"}`} />
+                        {vpnConflict ? "Refused" : scenario.id === "vpn-mfa" ? "Version that stays" : "Verified sources"}
                       </span>
                       <span className="font-sans text-xs text-[#8C8A94]">
-                        Official Citations
+                        {vpnConflict ? "Two versions" : "Official citations"}
                       </span>
                     </div>
 
                     <div className="space-y-1.5">
-                      {scenario.citations.map((c) => (
-                        <motion.div
-                          key={c.id}
-                          initial={{ opacity: 0, x: -6 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.25, delay: c.id * 0.1 }}
-                          className="flex items-center justify-between px-3 py-2 rounded-[8px] bg-[#151417] border border-[#C9A227]/30 text-xs font-mono group hover:border-[#C9A227]/60 transition-colors"
-                        >
-                          <div className="flex items-center gap-2 text-[#F7F3EA]/90 truncate">
-                            <span className="text-[#C9A227] font-bold">[{c.id}]</span>
-                            <FileText className="size-3 text-[#8C8A94] shrink-0" />
-                            <span className="truncate">{c.source} ({c.page})</span>
-                          </div>
-                          <span className="font-bold text-[#C9A227] bg-[#C9A227]/10 px-2 py-0.5 rounded-[4px] border border-[#C9A227]/20 shrink-0 ml-2">
-                            {c.confidence}
-                          </span>
-                        </motion.div>
-                      ))}
+                      <AnimatePresence initial={false}>
+                        {shownCitations.map((c) => {
+                          const loses = c.fate === "loses";
+                          return (
+                            <motion.div
+                              key={c.source}
+                              layout
+                              initial={{ opacity: 0, x: -6 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 36, height: 0, marginTop: 0 }}
+                              transition={{ duration: 0.45, ease: "easeIn" }}
+                              className={`flex items-center justify-between overflow-hidden px-3 py-2 rounded-[8px] bg-[#151417] border text-xs font-mono ${
+                                loses
+                                  ? "border-[#9E1B32] bg-[#9E1B32]/20"
+                                  : "border-[#C9A227]/30"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 text-[#F7F3EA]/90 truncate">
+                                <span className={`font-bold ${loses ? "text-[#BA243F]" : "text-[#C9A227]"}`}>[{c.id}]</span>
+                                <FileText className="size-3 text-[#8C8A94] shrink-0" />
+                                <span className="truncate">{c.source} ({c.page})</span>
+                              </div>
+                              <span className={`font-bold px-2 py-0.5 rounded-[4px] border shrink-0 ml-2 ${
+                                loses
+                                  ? "text-[#F6D5DC] bg-[#9E1B32]/40 border-[#9E1B32]"
+                                  : "text-[#C9A227] bg-[#C9A227]/10 border-[#C9A227]/20"
+                              }`}>
+                                {c.confidence}
+                              </span>
+                            </motion.div>
+                          );
+                        })}
+                      </AnimatePresence>
                     </div>
+
+                    {vpnConflict && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          vpnSettledRef.current = true;
+                          setVpnSettled(true);
+                        }}
+                        className="w-full rounded-[8px] border border-[#C9A227]/50 bg-[#9E1B32] px-3 py-2 font-sans text-xs font-bold text-[#F7F3EA] transition-colors hover:bg-[#BA243F]"
+                      >
+                        v3.0 stays
+                      </button>
+                    )}
                   </motion.div>
                 )}
               </motion.div>

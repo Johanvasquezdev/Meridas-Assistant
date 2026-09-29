@@ -6,32 +6,32 @@ import { motion, AnimatePresence } from "framer-motion";
 const steps = [
   {
     step: "01",
-    title: "Ingest Verified Documentation",
-    description: "Upload internal manuals, technical SOPs, and customer policies. Meridas establishes a clean, isolated knowledge boundary for your enterprise.",
+    title: "Ingest writes the evidence graph",
+    description: "Each upload becomes a source, a version, passages, and claims. A later revision stays beside the previous one and opens a conflict. Nothing is silently replaced.",
     features: [
-      "PDFs, Markdown, raw policies, and technical guidelines",
-      "Instant multi-tenant isolation and encryption",
-      "Automated deduplication and version tracking",
+      "Source, version, passage, and claim are written on ingest",
+      "A second version of the same directive opens a conflict",
+      "Both versions remain in force until a person decides",
     ],
   },
   {
     step: "02",
-    title: "Vector Geometry & Semantic Indexing",
-    description: "Meridas breaks your knowledge into semantic evidence strata, generating high-dimension vectors stored in dedicated tenant collections.",
+    title: "The chat reads only active evidence",
+    description: "An answer is assembled from passages that are still in force. If the evidence is missing or the versions contradict, Meridas refuses instead of guessing.",
     features: [
-      "Sentence-boundary aware chunking protects logical context",
-      "Sub-second vector indexing via Pinecone & pgvector",
-      "Cryptographic mapping between chunks and original files",
+      "Supported, conditional, or refused",
+      "Superseded passages are left out of retrieval",
+      "No answer is issued without a passage behind it",
     ],
   },
   {
     step: "03",
-    title: "Grounded Querying & Mandatory Citations",
-    description: "When queries arrive, Meridas searches for proof first. Every claim in the generated answer references the exact source line and page.",
+    title: "Adjudication changes the next answer",
+    description: "On the conflict desk a person declares which version stays. The other version is marked superseded, and the following question no longer retrieves it.",
     features: [
-      "Mandatory source provenance on every statement",
-      "Zero-hallucination refusal when evidence is missing",
-      "Interactive evidence drawer with similarity confidence",
+      "Declare which revision remains binding",
+      "The losing version is marked superseded",
+      "The next answer follows that decision",
     ],
   },
 ];
@@ -42,11 +42,9 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="py-[120px] border-b border-[#2A2832] bg-[#151417]">
       <div className="mx-auto max-w-[1240px] px-6">
-        
-        {/* Header */}
         <div className="mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[6px] border border-[#C9A227]/30 bg-[#9E1B32]/10 mb-4">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#C9A227] font-semibold">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-[6px] border border-[#C9A227]/40 bg-[#9E1B32]/15 px-3 py-1">
+            <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#C9A227]">
               The Evidence Engine
             </span>
           </div>
@@ -54,32 +52,30 @@ export function HowItWorks() {
             How Meridas Enforces Truth
           </h2>
           <p className="font-sans text-[16px] text-[#8C8A94] max-w-[560px]">
-            From raw organizational files to an unshakeable, citation-backed intelligence layer.
+            Upload a directive, refuse when versions disagree, and let a person decide what the next answer may use.
           </p>
         </div>
 
-        {/* Step Navigation */}
-        <div className="flex gap-12 mb-16 border-b border-[#2A2832]">
+        <div className="mb-16 flex gap-12 border-b border-[#C9A227]/20">
           {steps.map((s, i) => (
             <button
               key={s.step}
               onClick={() => setActiveStep(i)}
               className={`pb-4 font-mono text-sm tracking-widest transition-all relative ${
-                activeStep === i ? "text-[#C9A227] font-bold" : "text-[#8C8A94] hover:text-[#F7F3EA]"
+                activeStep === i ? "font-bold text-[#C9A227]" : "text-[#8C8A94] hover:text-[#F7F3EA]"
               }`}
             >
               STEP {s.step}
               {activeStep === i && (
-                <motion.div 
+                <motion.div
                   layoutId="activeHowItWorksTab"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C9A227]" 
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C9A227]"
                 />
               )}
             </button>
           ))}
         </div>
 
-        {/* Step Content */}
         <div className="relative min-h-[400px]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -90,9 +86,8 @@ export function HowItWorks() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
             >
-              {/* Left Column */}
               <div className="relative">
-                <div className="absolute -top-24 -left-10 font-mono text-[140px] font-bold text-[#1C1B20] select-none z-0 pointer-events-none">
+                <div className="absolute -top-24 -left-10 font-mono text-[140px] font-bold text-[#2A1218] select-none z-0 pointer-events-none">
                   {steps[activeStep].step}
                 </div>
                 <div className="relative z-10 space-y-6">
@@ -105,7 +100,7 @@ export function HowItWorks() {
                   <ul className="space-y-3.5 pt-2">
                     {steps[activeStep].features.map((f, idx) => (
                       <li key={idx} className="font-sans text-sm text-[#F7F3EA]/90 flex items-center gap-3">
-                        <span className="text-[#C9A227] font-bold">→</span>
+                        <span className="font-bold text-[#C9A227]">→</span>
                         {f}
                       </li>
                     ))}
@@ -113,8 +108,7 @@ export function HowItWorks() {
                 </div>
               </div>
 
-              {/* Right Column (Visual) */}
-              <div className="bg-[#1C1B20] border border-[#2A2832] rounded-[16px] p-10 flex items-center justify-center min-h-[360px] shadow-2xl">
+              <div className="flex min-h-[360px] items-center justify-center rounded-[16px] border border-[#C9A227]/25 bg-[#1C1B20] p-10 shadow-2xl shadow-black/40">
                 {activeStep === 0 && <Step1Illustration />}
                 {activeStep === 1 && <Step2Illustration />}
                 {activeStep === 2 && <Step3Illustration />}
@@ -122,7 +116,6 @@ export function HowItWorks() {
             </motion.div>
           </AnimatePresence>
         </div>
-
       </div>
     </section>
   );
@@ -137,18 +130,18 @@ function Step1Illustration() {
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: "100%", opacity: 1 }}
           transition={{ duration: 0.6, delay: i * 0.15 }}
-          className="h-2 bg-[#151417] rounded-full overflow-hidden border border-[#2A2832]"
+          className="h-2 bg-[#151417] rounded-full overflow-hidden"
         >
-          <motion.div 
+          <motion.div
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 2.2, repeat: Infinity, delay: i * 0.2 }}
-            className="w-1/3 h-full bg-gradient-to-r from-[#9E1B32] to-[#C9A227]" 
+            className="w-1/3 h-full bg-[#9E1B32]"
           />
         </motion.div>
       ))}
-      <div className="pt-2 flex justify-between font-mono text-[10px] text-[#8C8A94]">
-        <span>INGESTING_RECORDS</span>
-        <span className="text-[#C9A227]">STREAM ACTIVE</span>
+      <div className="pt-2 flex justify-between font-mono text-[12px] text-[#B7B4BE]">
+        <span>Writing the graph</span>
+        <span className="text-[#F6D5DC]">Both versions stay</span>
       </div>
     </div>
   );
@@ -157,14 +150,12 @@ function Step1Illustration() {
 function Step2Illustration() {
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center">
-      <div className="relative size-28 rounded-full border-2 border-dashed border-[#C9A227]/40 flex items-center justify-center animate-spin" style={{ animationDuration: "20s" }}>
-        <div className="size-16 rounded-full border border-[#9E1B32] bg-[#9E1B32]/10 flex items-center justify-center">
-          <span className="font-mono text-xs text-[#C9A227] font-bold">VEC</span>
-        </div>
+      <div className="size-28 rounded-[18px] bg-[#9E1B32] flex items-center justify-center">
+        <span className="font-sans text-lg font-bold text-[#F7F3EA]">Refused</span>
       </div>
-      <div className="font-mono text-xs text-[#8C8A94]">
-        <span>DIMENSIONS: 1536</span> · <span className="text-[#C9A227]">COSINE SIMILARITY</span>
-      </div>
+      <p className="font-sans text-[14px] text-[#F6D5DC] max-w-[240px]">
+        Two versions contradict, so there is no blended answer.
+      </p>
     </div>
   );
 }
@@ -175,15 +166,15 @@ function Step3Illustration() {
       <div className="p-3.5 rounded-[10px] bg-[#151417] border border-[#C9A227]/30 text-left">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="size-2 rounded-full bg-[#C9A227]" />
-          <span className="font-mono text-[10px] text-[#C9A227] font-bold">CITED EXCERPT [SOP-NET-2025-001-v3.0]</span>
+          <span className="font-sans text-[12px] text-[#C9A227] font-bold">v3.0 stays in the next answer</span>
         </div>
-        <p className="font-sans text-xs text-[#F7F3EA]/90 leading-snug">
-          &ldquo;Gateway Address: vpn-hq.internal.bluehawk.com. Mandatory Port: Port 8443 (TLS 1.3 Strict). Authentication: Active Directory + Mandatory Duo Mobile Hardware Push MFA.&rdquo;
+        <p className="font-sans text-[13px] text-[#F7F3EA]/90 leading-snug">
+          Port 8443, TLS 1.3, and Duo push. The earlier VPN standard is out.
         </p>
       </div>
-      <div className="flex justify-between items-center px-1 font-mono text-[10px] text-[#8C8A94]">
-        <span>MATCH: 98.2%</span>
-        <span className="text-[#C9A227]">VERIFIED ✓</span>
+      <div className="flex justify-between items-center px-1 font-sans text-[12px] text-[#F6D5DC]">
+        <span>v2.4 superseded</span>
+        <span className="text-[#C9A227]">Declared</span>
       </div>
     </div>
   );

@@ -201,7 +201,43 @@ async function main() {
     console.log(`Seeded directives for workspace: ${t.name} (${t.id})`);
   }
 
+  await linkPilotPassagesToChunks(tenant.id, v24.id, p24.id, 'VPN GlobalProtect v2.4 Superseded');
+  await linkPilotPassagesToChunks(tenant.id, v30.id, p30.id, 'VPN GlobalProtect v3.0 Active HQ');
+
   console.log('Meridas Pilot Dataset Seed Complete: 5 operational docs across all workspaces, DocumentChunks generated with tsvector.');
+}
+
+async function linkPilotPassagesToChunks(
+  tenantId: string,
+  versionId: string,
+  primaryPassageId: string,
+  title: string,
+) {
+  const doc = await prisma.document.findFirst({ where: { tenantId, title } });
+  if (!doc) return;
+
+  const chunks = await prisma.documentChunk.findMany({
+    where: { documentId: doc.id },
+    orderBy: { chunkIndex: 'asc' },
+  });
+
+  if (chunks[0]) {
+    await prisma.passage.update({
+      where: { id: primaryPassageId },
+      data: { vectorId: chunks[0].vectorId },
+    });
+  }
+
+  for (const chunk of chunks.slice(1)) {
+    await prisma.passage.create({
+      data: {
+        sourceVersionId: versionId,
+        passageIndex: chunk.chunkIndex,
+        text: chunk.text.slice(0, 2000),
+        vectorId: chunk.vectorId,
+      },
+    });
+  }
 }
 
 main()

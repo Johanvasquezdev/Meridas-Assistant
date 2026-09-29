@@ -70,6 +70,7 @@ model Document {
   chunks          DocumentChunk[]
   insights        DocumentInsight[]
   tables          DocumentTable[]
+  source          Source?
 
   @@index([tenantId])
 }
@@ -88,6 +89,20 @@ model DocumentChunk {
   @@unique([documentId, chunkIndex])
   @@index([tenantId])
   @@index([documentId])
+}
+
+model StoredVector {
+  id         String   @id
+  tenantId   String
+  documentId String?
+  chunkIndex Int?
+  text       String
+  values     Float[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, documentId])
 }
 
 model DocumentTable {
@@ -235,6 +250,7 @@ enum DocumentStatus {
 model Source {
   id            String          @id @default(uuid())
   tenantId      String
+  documentId    String?         @unique
   title         String
   domain        String          @default("OPERATIONAL_SOP")
   scopeSite     String?
@@ -244,6 +260,7 @@ model Source {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   tenant        Tenant          @relation(fields: [tenantId], references: [id])
+  document      Document?       @relation(fields: [documentId], references: [id], onDelete: Cascade)
   versions      SourceVersion[]
 
   @@index([tenantId])

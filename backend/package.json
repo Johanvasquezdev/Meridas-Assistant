@@ -2,6 +2,8 @@
   "name": "supportmind-backend",
   "version": "1.0.0",
   "description": "Backend API for SupportMind AI",
+  "private": true,
+  "license": "UNLICENSED",
   "main": "dist/src/main.js",
   "scripts": {
     "build": "nest build",

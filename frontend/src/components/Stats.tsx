@@ -12,10 +12,10 @@ interface StatItem {
 }
 
 const stats: StatItem[] = [
-  { numericValue: 100, suffix: "%", label: "Evidence Grounding", sublabel: "Zero unverified assertions allowed" },
-  { numericValue: 0, suffix: "", label: "Tolerated Hallucinations", sublabel: "Refusal protocol on unverified queries" },
-  { numericValue: 240, suffix: "ms", label: "Evidence Retrieval", sublabel: "Sub-second vector provenance search" },
-  { numericValue: 99, suffix: ".8%", label: "Audit Precision", sublabel: "Traceable decision trails for enterprise" },
+  { numericValue: 3, suffix: "", label: "Decision states", sublabel: "Supported, conditional, or refused" },
+  { numericValue: 0, suffix: "", label: "Answers without evidence", sublabel: "Missing proof ends in a refusal" },
+  { numericValue: 2, suffix: "", label: "Versions can disagree", sublabel: "Both stay until a person decides" },
+  { numericValue: 1, suffix: "", label: "Adjudication", sublabel: "The losing version leaves the next answer" },
 ];
 
 function AnimatedNumber({ value, isVisible }: { value: number; isVisible: boolean }) {

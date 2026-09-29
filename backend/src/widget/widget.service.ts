@@ -43,8 +43,8 @@ const DEFAULT_CONFIG: WidgetConfigResult = {
   primaryColor: '#9E1B32',
   position: 'bottom-right',
   placeholder: 'Query operational directives...',
-  title: 'MERIDAS Intelligence',
-  welcomeMessage: 'Institutional Knowledge Console. Submit an operational query for verified answers with citation evidence.',
+  title: 'Meridas assistant',
+  welcomeMessage: 'Hello. I am the Meridas assistant. Ask about your organization\'s policies, SOPs, and operating procedures.',
   isEnabled: true,
   allowedOrigins: [],
 };

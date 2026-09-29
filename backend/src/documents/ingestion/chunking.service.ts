@@ -36,6 +36,8 @@ export interface Chunk {
   text: string;
   /** Estimated token count. */
   tokenEstimate: number;
+  /** Stable vector id when the evidence graph assigns a versioned id. */
+  vectorId?: string;
 }
 
 @Injectable()

@@ -578,8 +578,7 @@
             </svg>
           </div>
           <div class="mrd-header-info">
-            <h3>${config?.title || 'MERIDAS AI Assistant'}</h3>
-            <p><span class="mrd-status-dot"></span> AI Assistant • Policy Verified</p>
+            <h3>${config?.title || 'Meridas assistant'}</h3>
           </div>
         </div>
         <button class="mrd-close-btn" title="Close assistant">
@@ -588,7 +587,7 @@
       </div>
       <div class="mrd-ai-notice">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>AI Notice: You are chatting with an AI assistant. Responses are based on official company documentation.</span>
+        <span>You are chatting with an AI assistant. Responses come from your organization's documents.</span>
       </div>
       <div class="mrd-message-list" id="mrd-messages">
         <!-- Messages rendered here -->
@@ -600,7 +599,7 @@
         </button>
       </div>
       <div class="mrd-footer">
-        Powered by <a href="https://meridas.ai" target="_blank" rel="noopener">MERIDAS AI Assistant</a>
+        Powered by <a href="https://meridas.ai" target="_blank" rel="noopener">Meridas</a>
       </div>
     `;
 
@@ -619,7 +618,7 @@
 
     // Welcome message if initial launch
     if (messages.length === 0) {
-      const welcome = config?.welcomeMessage || 'Hello! I am your MERIDAS AI Assistant. You are chatting with an AI assistant trained on your organization\'s verified policies, SOPs, and operating procedures. How can I assist you today?';
+      const welcome = config?.welcomeMessage || 'Hello. I am the Meridas assistant. Ask about your organization\'s policies, SOPs, and operating procedures.';
       addMessage('assistant', welcome, [], false);
     }
   }
@@ -708,7 +707,7 @@
     if (role === 'assistant') {
       html += `<div class="mrd-verified-badge">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 8L22 9L17 14L18 21L12 17.5L6 21L7 14L2 9L9 8L12 2Z"/></svg>
-        AI Assistant • Verified Policy
+        Verified policy
       </div>`;
     }
     

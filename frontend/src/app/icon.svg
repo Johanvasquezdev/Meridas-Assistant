@@ -1,0 +1,62 @@
+<svg width="128" height="128" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="meridas-crimson" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#BA243F" />
+      <stop offset="100%" stopColor="#9E1B32" />
+    </linearGradient>
+    <linearGradient id="meridas-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#DFB943" />
+      <stop offset="100%" stopColor="#C9A227" />
+    </linearGradient>
+    <linearGradient id="meridas-gold-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#C9A227" />
+      <stop offset="100%" stopColor="#997816" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" fill="#151417"/>
+
+  <!-- Outer Compass Ring -->
+  <circle cx="50" cy="50" r="34" stroke="#9E1B32" stroke-width="4.5" />
+  <circle cx="50" cy="50" r="39.5" stroke="#C9A227" stroke-width="1.2" stroke-dasharray="2 4" opacity="0.6" />
+
+  <!-- North Point -->
+  <path d="M50 4L55.5 24H44.5L50 4Z" fill="url(#meridas-gold)" />
+  <path d="M50 4L44.5 24H50V4Z" fill="url(#meridas-gold-dark)" />
+
+  <!-- South Point -->
+  <path d="M50 96L44.5 76H55.5L50 96Z" fill="url(#meridas-gold)" />
+  <path d="M50 96L55.5 76H50V96Z" fill="url(#meridas-gold-dark)" />
+
+  <!-- East Point -->
+  <path d="M96 50L76 44.5V55.5L96 50Z" fill="url(#meridas-gold)" />
+  <path d="M96 50L76 55.5V50L96 50Z" fill="url(#meridas-gold-dark)" />
+
+  <!-- West Point -->
+  <path d="M4 50L24 55.5V44.5L4 50Z" fill="url(#meridas-gold)" />
+  <path d="M4 50L24 44.5V50L4 50Z" fill="url(#meridas-gold-dark)" />
+
+  <!-- 3-Tier Isometric Evidence Stack -->
+  <!-- Tier 1 -->
+  <g transform="translate(0, 14)">
+    <path d="M28 50L50 61V65L28 54V50Z" fill="#580D1B" />
+    <path d="M50 61L72 50V54L50 65V61Z" fill="#751224" />
+    <path d="M50 45L72 54L50 63L28 54L50 45Z" fill="#9E1B32" stroke="#F7F3EA" stroke-width="0.8" />
+  </g>
+
+  <!-- Tier 2 -->
+  <g transform="translate(0, 6)">
+    <path d="M28 47L50 58V62L28 51V47Z" fill="#580D1B" />
+    <path d="M50 58L72 47V51L50 62V58Z" fill="#751224" />
+    <path d="M50 41L72 50L50 59L28 50L50 41Z" fill="#A81E37" stroke="#F7F3EA" stroke-width="0.8" />
+  </g>
+
+  <!-- Tier 3 -->
+  <g transform="translate(0, -2)">
+    <path d="M28 44L50 55V59L28 48V44Z" fill="#6B1021" />
+    <path d="M50 55L72 44V48L50 59V55Z" fill="#87162A" />
+    <path d="M50 37L72 46L50 55L28 46L50 37Z" fill="url(#meridas-crimson)" stroke="#C9A227" stroke-width="1.2" />
+
+    <!-- Gold Verification Checkmark -->
+    <path d="M44 46.5L48.2 50.8L57 41.5" fill="none" stroke="url(#meridas-gold)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>
