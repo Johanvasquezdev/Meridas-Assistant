@@ -20,6 +20,8 @@ import {
   ShieldCheck,
   Scale,
   AlertTriangle,
+  Menu,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
@@ -43,8 +45,10 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useUser();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme !== "light";
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutLabel] = useState(() =>
@@ -55,6 +59,10 @@ export default function DashboardLayout({
   );
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -71,19 +79,26 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen w-full flex-col bg-background font-sans text-foreground transition-colors duration-300">
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {mobileOpen && (
+          <button
+            type="button"
+            className="fixed inset-0 z-30 bg-black/60 md:hidden"
+            aria-label="Close menu"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
         <aside
           className={cn(
-            "relative flex flex-col border-r border-border bg-[#151417] transition-all duration-300 z-20",
-            collapsed ? "w-20" : "w-64"
+            "fixed inset-y-0 left-0 z-40 flex w-[min(18rem,88vw)] flex-col border-r border-border bg-[#151417] transition-transform duration-300 md:relative md:inset-auto md:z-20 md:w-64 md:translate-x-0",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+            collapsed && "md:w-20"
           )}
         >
-          {/* Sidebar Logo */}
-          <div className="flex h-18 items-center px-5 border-b border-border/60">
-            <Link href="/" className="flex items-center gap-3">
-              <MeridasIcon size={collapsed ? 32 : 36} />
-              {!collapsed && (
-                <div className="flex flex-col">
+          <div className="flex h-16 items-center gap-3 border-b border-border/60 px-5 sm:h-18">
+            <Link href="/" className="flex min-w-0 items-center gap-3">
+              <MeridasIcon size={collapsed && !mobileOpen ? 32 : 36} />
+              {(!collapsed || mobileOpen) && (
+                <div className="flex min-w-0 flex-col">
                   <span className="text-sm font-bold tracking-[0.2em] text-[#F7F3EA] uppercase leading-none font-sans">
                     MERIDAS
                   </span>
@@ -93,6 +108,14 @@ export default function DashboardLayout({
                 </div>
               )}
             </Link>
+            <button
+              type="button"
+              className="ml-auto inline-flex size-8 shrink-0 items-center justify-center text-[#8C8A94] md:hidden"
+              aria-label="Close menu"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X className="size-4" />
+            </button>
           </div>
 
           {/* New Chat Quick Action */}
@@ -101,11 +124,11 @@ export default function DashboardLayout({
               href="/dashboard/chat"
               className={cn(
                 "flex items-center justify-center gap-2 rounded-[10px] bg-[#9E1B32] hover:bg-[#BA243F] text-[#F7F3EA] border border-[#C9A227]/40 py-2.5 px-3 text-xs font-semibold tracking-wide shadow-md shadow-[#9E1B32]/25 transition-all font-sans",
-                collapsed && "px-0"
+                collapsed && !mobileOpen && "px-0 md:px-0"
               )}
             >
               <Plus className="size-4 shrink-0 text-[#C9A227]" />
-              {!collapsed && <span>New Inquiry</span>}
+              {(!collapsed || mobileOpen) && <span>New Inquiry</span>}
             </Link>
           </div>
 
@@ -120,6 +143,7 @@ export default function DashboardLayout({
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={() => setMobileOpen(false)}
                   className={cn(
                     "group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-xs font-medium transition-all font-sans",
                     isActive
@@ -133,7 +157,7 @@ export default function DashboardLayout({
                       isActive ? "text-[#C9A227]" : "text-[#8C8A94]"
                     )}
                   />
-                  {!collapsed && <span className="tracking-wide font-sans">{link.label}</span>}
+                  {(!collapsed || mobileOpen) && <span className="tracking-wide font-sans">{link.label}</span>}
                 </Link>
               );
             })}
@@ -146,15 +170,15 @@ export default function DashboardLayout({
               onClick={() => setSearchOpen(true)}
               className={cn(
                 "flex w-full items-center rounded-[8px] px-3 py-2 text-xs font-medium text-[#8C8A94] transition-colors hover:bg-[#1C1B20] hover:text-[#F7F3EA]",
-                collapsed ? "justify-center" : "justify-between"
+                collapsed && !mobileOpen ? "justify-center" : "justify-between"
               )}
               aria-label="Open search"
             >
               <span className="flex items-center gap-2.5">
                 <Search className="size-4 shrink-0" />
-                {!collapsed && <span>Search Policies</span>}
+                {(!collapsed || mobileOpen) && <span>Search Policies</span>}
               </span>
-              {!collapsed && (
+              {(!collapsed || mobileOpen) && (
                 <span className="font-sans text-[10px] font-medium text-[#C9A227] bg-[#1C1B20] px-1.5 py-0.5 rounded border border-border">
                   {shortcutLabel}
                 </span>
@@ -163,20 +187,21 @@ export default function DashboardLayout({
           </div>
 
           {/* Grounded Status Banner */}
-          {!collapsed && (
-            <div className="mx-3 my-2 p-3.5 rounded-[12px] bg-gradient-to-b from-[#1C1B20] to-[#151417] border border-[#C9A227]/30 shadow-lg font-sans">
-              <div className="flex items-center gap-2 mb-1.5">
-                <ShieldCheck className="size-4 text-[#C9A227]" />
-                <span className="font-sans text-xs font-semibold text-[#F7F3EA]">
+          {(!collapsed || mobileOpen) && (
+            <div className="mx-3 my-2 rounded-[12px] border border-[#C9A227]/40 bg-[#F6F1E6] p-3.5 font-sans shadow-sm dark:border-[#C9A227]/30 dark:bg-gradient-to-b dark:from-[#1C1B20] dark:to-[#151417] dark:shadow-lg">
+              <div className="mb-1.5 flex items-center gap-2">
+                <ShieldCheck className="size-4 text-[#7A6112] dark:text-[#C9A227]" />
+                <span className="font-sans text-xs font-semibold text-[#151417] dark:text-[#F7F3EA]">
                   Verified Documents
                 </span>
               </div>
-              <p className="text-[11px] text-[#8C8A94] leading-relaxed mb-2.5 font-sans">
+              <p className="mb-2.5 font-sans text-[11px] leading-relaxed text-[#5E5C66] dark:text-[#8C8A94]">
                 A superseded version stays out of the next answer.
               </p>
               <Link
                 href="/dashboard/conflicts"
-                className="block text-center py-1.5 px-3 rounded-[6px] bg-[#9E1B32]/30 hover:bg-[#9E1B32]/50 border border-[#C9A227]/40 text-xs font-sans text-[#C9A227] font-medium transition-all"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-[6px] border border-[#C9A227]/50 bg-[#9E1B32] px-3 py-1.5 text-center font-sans text-xs font-medium text-[#F7F3EA] transition-all hover:bg-[#BA243F] dark:border-[#C9A227]/40 dark:bg-[#9E1B32]/30 dark:text-[#C9A227] dark:hover:bg-[#9E1B32]/50"
               >
                 Open the conflict desk
               </Link>
@@ -187,7 +212,7 @@ export default function DashboardLayout({
           <div className="border-t border-border px-3 py-3 font-sans">
             <div className={cn(
               "flex items-center gap-2.5 rounded-[8px] px-1",
-              collapsed ? "justify-center" : "min-w-0"
+              collapsed && !mobileOpen ? "justify-center" : "min-w-0"
             )}>
               <div className="shrink-0 [&_.cl-userButtonBox]:!w-auto [&_.cl-userButtonTrigger]:!w-auto [&_.cl-userButtonOuterIdentifier]:!hidden">
                 <UserButton
@@ -206,7 +231,7 @@ export default function DashboardLayout({
                   }}
                 />
               </div>
-              {!collapsed && (
+              {(!collapsed || mobileOpen) && (
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5 font-sans">
                   <p className="truncate text-[13px] font-semibold leading-4 text-[#F7F3EA]">
                     {user?.fullName || "Operator"}
@@ -219,8 +244,7 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          {/* Collapse toggle */}
-          <div className="border-t border-border px-3 py-2 font-sans">
+          <div className="hidden border-t border-border px-3 py-2 font-sans md:block">
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
@@ -242,11 +266,19 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main content area */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-background font-sans">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background font-sans">
           {/* Top bar */}
-          <header className="flex h-14 items-center justify-between border-b border-border bg-[#151417]/90 px-6 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <h2 className="text-sm font-semibold tracking-wide text-[#F7F3EA] font-sans">
+          <header className="flex h-14 items-center justify-between border-b border-border bg-[#151417]/90 px-4 backdrop-blur-xl md:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-[8px] border border-border text-[#F7F3EA] md:hidden"
+                aria-label="Open menu"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="size-4" />
+              </button>
+              <h2 className="truncate text-sm font-semibold tracking-wide text-[#F7F3EA] font-sans">
                 {sidebarLinks.find(
                   (l) => pathname === l.href || pathname.startsWith(l.href + "/")
                 )?.label ?? "Dashboard"}
@@ -255,11 +287,12 @@ export default function DashboardLayout({
             <div className="flex items-center gap-4">
               {mounted && (
                 <button
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="flex size-8 items-center justify-center rounded-[8px] border border-border text-[#8C8A94] hover:bg-[#1C1B20] hover:text-[#F7F3EA] transition-all active:scale-95"
-                  aria-label="Toggle theme"
+                  type="button"
+                  onClick={() => setTheme(isDark ? "light" : "dark")}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-[8px] border border-border text-[#8C8A94] transition-all hover:bg-[#1C1B20] hover:text-[#F7F3EA] active:scale-95"
+                  aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
                 >
-                  {theme === "dark" ? (
+                  {isDark ? (
                     <Sun className="size-4 text-[#C9A227]" />
                   ) : (
                     <Moon className="size-4" />

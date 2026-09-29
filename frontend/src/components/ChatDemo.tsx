@@ -151,24 +151,24 @@ export function ChatDemo() {
       <div className="flex items-center px-5 py-3.5 border-b border-[#2A2832] bg-[#18171C]">
         <div className="flex items-center gap-2.5">
           <MeridasIcon size={20} />
-          <span className="font-sans text-xs text-[#F7F3EA] uppercase tracking-wider font-bold">
+          <span className="truncate font-sans text-[11px] text-[#F7F3EA] uppercase tracking-wide font-bold sm:text-xs sm:tracking-wider">
             MERIDAS AI SUPPORT ASSISTANT
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-5 py-2 bg-[#1C1B20] border-b border-[#2A2832] text-[11px] text-[#C9A227] font-sans">
-        <Star className="size-3 fill-[#C9A227] text-[#C9A227]" />
-        <span>AI Assistant Notice: Responses are verified directly from active company policies.</span>
+      <div className="flex items-start gap-2 border-b border-[#2A2832] bg-[#1C1B20] px-4 py-2 font-sans text-[11px] text-[#C9A227] sm:px-5">
+        <Star className="mt-0.5 size-3 shrink-0 fill-[#C9A227] text-[#C9A227]" />
+        <span className="min-w-0">AI Assistant Notice: Responses are verified directly from active company policies.</span>
       </div>
 
       {/* Scenario Tabs Bar */}
-      <div className="flex items-center justify-between px-5 py-2 bg-[#121114] border-b border-[#2A2832]/60 text-[10px] font-sans">
-        <span className="text-[#8C8A94] uppercase tracking-wider flex items-center gap-1">
+      <div className="flex items-center gap-2 overflow-hidden bg-[#121114] border-b border-[#2A2832]/60 px-3 py-2 text-[10px] font-sans sm:px-5">
+        <span className="hidden shrink-0 items-center gap-1 uppercase tracking-wider text-[#8C8A94] sm:flex">
           <ShieldCheck className="size-3 text-[#C9A227]" />
           Verified Policies
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
           {SCENARIOS.map((s, idx) => (
             <button
               key={s.id}
@@ -176,7 +176,7 @@ export function ChatDemo() {
                 setActiveScenarioIndex(idx);
                 setAnimationStep("question");
               }}
-              className={`px-2 py-0.5 rounded-[4px] transition-all font-sans ${
+              className={`shrink-0 whitespace-nowrap px-2 py-0.5 rounded-[4px] transition-all font-sans ${
                 activeScenarioIndex === idx
                   ? "bg-[#9E1B32] text-[#F7F3EA] font-bold border border-[#C9A227]/40"
                   : "text-[#8C8A94] hover:text-[#F7F3EA] bg-[#1C1B20] border border-[#2A2832]"
@@ -189,7 +189,7 @@ export function ChatDemo() {
       </div>
 
       {/* Main Chat Flow Area */}
-      <div className="p-5 space-y-4 min-h-[360px] flex flex-col justify-start">
+      <div className="flex min-h-[320px] flex-col justify-start space-y-4 p-4 sm:min-h-[360px] sm:p-5">
         <AnimatePresence mode="wait">
           <motion.div
             key={scenario.id}

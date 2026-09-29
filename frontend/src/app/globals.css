@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --grid-line: #151417;
   --background: #F7F3EA;
   --foreground: #151417;
   --card: #FFFFFF;
@@ -19,6 +20,7 @@
 }
 
 .dark {
+  --grid-line: #f7f3ea;
   --background: #151417;
   --foreground: #F7F3EA;
   --card: #1C1B20;
@@ -67,7 +69,12 @@
 
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
     font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
@@ -168,24 +175,111 @@
   }
 }
 
-.chat-scrollbar::-webkit-scrollbar {
-  width: 6px;
+* {
+  scrollbar-width: none;
 }
 
-.chat-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chat-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(158, 27, 50, 0.4);
-  border-radius: 3px;
-}
-
-.chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 162, 39, 0.6);
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* Hide Clerk internal development badge */
 .cl-internal-b3fm6y {
   display: none !important;
+}
+
+/* Light mode. Surfaces are written as charcoal and ivory utilities; remap them when .dark is off. Gold and crimson stay. */
+html:not(.dark) [class~="bg-[#151417]"],
+html:not(.dark) [class~="bg-[#151417]/80"],
+html:not(.dark) [class~="bg-[#151417]/90"],
+html:not(.dark) [class~="bg-[#151417]/95"] {
+  background-color: #f6f1e6;
+}
+
+html:not(.dark) [class~="from-[#151417]"],
+html:not(.dark) [class~="to-[#151417]"] {
+  --tw-gradient-from: #f6f1e6;
+  --tw-gradient-to: #f6f1e6;
+}
+
+html:not(.dark) [class~="from-[#1C1B20]"] {
+  --tw-gradient-from: #ffffff;
+}
+
+html:not(.dark) [class~="via-[#17161A]"] {
+  --tw-gradient-via: #efe9dc;
+  --tw-gradient-stops: var(--tw-gradient-from), #efe9dc, var(--tw-gradient-to);
+}
+
+html:not(.dark) [class~="bg-[#1C1B20]"],
+html:not(.dark) [class~="bg-[#1C1B20]/40"],
+html:not(.dark) [class~="bg-[#1C1B20]/60"],
+html:not(.dark) [class~="bg-[#1C1B20]/80"],
+html:not(.dark) [class~="bg-[#1C1B20]/90"] {
+  background-color: #ffffff;
+}
+
+html:not(.dark) [class~="bg-[#121114]"],
+html:not(.dark) [class~="bg-[#131318]"],
+html:not(.dark) [class~="bg-[#18171C]"],
+html:not(.dark) [class~="bg-[#222027]"],
+html:not(.dark) [class~="bg-[#232229]"],
+html:not(.dark) [class~="bg-[#2A2832]"] {
+  background-color: #efe9dc;
+}
+
+html:not(.dark) [class~="text-[#F7F3EA]"],
+html:not(.dark) [class~="text-[#F7F3EA]/90"],
+html:not(.dark) [class~="text-[#F0EEE9]"],
+html:not(.dark) [class~="dark:text-[#F7F3EA]"] {
+  color: #151417;
+}
+
+html:not(.dark) [class~="bg-[#9E1B32]"][class~="text-[#F7F3EA]"],
+html:not(.dark) [class~="bg-[#9E1B32]"] [class~="text-[#F7F3EA]"] {
+  color: #f7f3ea;
+}
+
+html:not(.dark) [class~="text-[#8C8A94]"],
+html:not(.dark) [class~="text-[#8C8A94]/70"],
+html:not(.dark) [class~="text-[#6B6A72]"],
+html:not(.dark) [class~="text-[#B7B4BE]"] {
+  color: #5e5c66;
+}
+
+html:not(.dark) [class~="text-[#C9A227]"],
+html:not(.dark) [class~="text-[#C9A227]/80"],
+html:not(.dark) [class~="text-[#DFB943]"] {
+  color: #7a6112;
+}
+
+html:not(.dark) [class~="border-[#2A2832]"],
+html:not(.dark) [class~="border-[#2A2832]/60"],
+html:not(.dark) [class~="border-[#1E1E26]"],
+html:not(.dark) [class~="divide-[#2A2832]"] {
+  border-color: #e2dbd0;
+}
+
+html:not(.dark) [class*="border-white/"] {
+  border-color: #e2dbd0;
+}
+
+html:not(.dark) [class~="hover:bg-[#1C1B20]"]:hover,
+html:not(.dark) [class~="hover:bg-[#151417]"]:hover,
+html:not(.dark) [class~="hover:bg-[#151417]/80"]:hover,
+html:not(.dark) [class~="hover:bg-[#222027]"]:hover,
+html:not(.dark) [class~="hover:bg-[#232128]"]:hover,
+html:not(.dark) [class~="hover:bg-[#25232B]"]:hover {
+  background-color: #e8e0d2;
+}
+
+html:not(.dark) [class~="hover:text-[#F7F3EA]"]:hover,
+html:not(.dark) [class~="hover:text-[#F0EEE9]"]:hover {
+  color: #151417;
+}
+
+html:not(.dark) .group:hover [class~="group-hover:text-[#F7F3EA]"] {
+  color: #151417;
 }

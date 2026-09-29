@@ -181,7 +181,7 @@ export default function ConflictsPage() {
   });
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-y-auto bg-gradient-to-b from-[#151417] via-[#17161A] to-[#151417] text-[#F7F3EA] chat-scrollbar">
+    <div className="flex h-full flex-1 flex-col overflow-y-auto bg-[#F6F1E6] text-[#151417] chat-scrollbar dark:bg-gradient-to-b dark:from-[#151417] dark:via-[#17161A] dark:to-[#151417] dark:text-[#F7F3EA]">
       {/* Header Banner */}
       <div className="border-b border-white/10 bg-[#1C1B20]/60 px-8 py-6 backdrop-blur-md">
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row md:items-center justify-between gap-4">

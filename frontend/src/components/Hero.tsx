@@ -19,18 +19,18 @@ export function Hero() {
   const label = isLoaded && isSignedIn ? "Access console" : "Sign in";
 
   return (
-    <section className="relative min-h-[92vh] bg-[#151417] pt-28 pb-16 flex items-center">
+    <section className="relative flex min-h-[92vh] items-center overflow-x-hidden bg-[#151417] pt-24 pb-16 sm:pt-28">
       <div
         className="absolute inset-0 opacity-[0.035] pointer-events-none"
         style={{
-          backgroundImage: "linear-gradient(#F7F3EA 1px, transparent 1px), linear-gradient(90deg, #F7F3EA 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
       />
       <div className="pointer-events-none absolute right-[8%] top-16 h-[420px] w-[420px] rounded-full bg-[#9E1B32]/20 blur-3xl" />
       <div className="pointer-events-none absolute right-[28%] top-40 h-[280px] w-[280px] rounded-full bg-[#C9A227]/10 blur-3xl" />
 
-      <div className="mx-auto max-w-[1240px] px-6 relative z-10 w-full">
+      <div className="relative z-10 mx-auto w-full max-w-[1240px] px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           <div className="lg:col-span-6 space-y-8">
             <motion.div
@@ -39,7 +39,7 @@ export function Hero() {
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="space-y-5"
             >
-              <h1 className="font-sans text-[44px] sm:text-[62px] lg:text-[68px] font-bold leading-[1.04] tracking-[-0.03em] text-[#F7F3EA]">
+              <h1 className="font-sans text-[40px] font-bold leading-[1.04] tracking-[-0.03em] text-[#F7F3EA] sm:text-[62px] lg:text-[68px]">
                 Evidence first.<br />
                 <span className="text-[#C9A227]">
                   Answer second.
@@ -67,8 +67,8 @@ export function Hero() {
                     <div className="flex size-8 shrink-0 items-center justify-center rounded-[6px] bg-[#151417]">
                       <Icon className="size-4 text-[#C9A227]" />
                     </div>
-                    <div>
-                      <div className="font-sans text-[13px] font-semibold text-[#F7F3EA] leading-tight">
+                    <div className="min-w-0">
+                      <div className="font-sans text-[13px] font-semibold leading-tight text-[#F7F3EA]">
                         {spec.label}
                       </div>
                       <div className="font-sans text-[13px] text-[#B7B4BE] leading-snug">
@@ -88,7 +88,7 @@ export function Hero() {
             >
               <Link
                 href={href}
-                className="rounded-[8px] border border-[#C9A227] bg-[#9E1B32] px-7 py-3.5 font-sans text-xs font-bold uppercase tracking-wider text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/25 transition-colors hover:bg-[#BA243F]"
+                className="whitespace-nowrap rounded-[8px] border border-[#C9A227] bg-[#9E1B32] px-5 py-3 font-sans text-xs font-bold uppercase tracking-wide text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/25 transition-colors hover:bg-[#BA243F] sm:px-7 sm:py-3.5 sm:tracking-wider"
               >
                 {label}
               </Link>

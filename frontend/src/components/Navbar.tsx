@@ -25,10 +25,10 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-[#C9A227]/25 bg-[#151417]/90 backdrop-blur-md">
-      <div className="mx-auto max-w-[1240px] px-6">
-        <div className="flex h-18 items-center justify-between">
-          <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-            <MeridasLogo size="sm" withTagline={true} />
+      <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
+        <div className="flex h-16 items-center justify-between gap-2 sm:h-18">
+          <Link href="/" className="flex min-w-0 items-center" onClick={() => setOpen(false)}>
+            <MeridasLogo size="sm" withTagline={true} taglineClassName="hidden sm:block" />
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
@@ -43,11 +43,11 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             {mounted && isLoaded && (
               <Link
                 href={href}
-                className="rounded-[8px] border border-[#C9A227] bg-[#9E1B32] px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/25 transition-colors hover:bg-[#BA243F]"
+                className="whitespace-nowrap rounded-[8px] border border-[#C9A227] bg-[#9E1B32] px-2.5 py-2 font-sans text-[10px] font-bold uppercase tracking-wide text-[#F7F3EA] shadow-lg shadow-[#9E1B32]/25 transition-colors hover:bg-[#BA243F] sm:px-5 sm:py-2.5 sm:text-xs sm:tracking-wider"
               >
                 {label}
               </Link>
@@ -65,7 +65,7 @@ export function Navbar() {
 
             <button
               type="button"
-              className="inline-flex size-11 items-center justify-center text-[#F7F3EA] md:hidden"
+              className="inline-flex size-9 items-center justify-center text-[#F7F3EA] md:hidden"
               aria-expanded={open}
               aria-label={open ? "Close menu" : "Open menu"}
               onClick={() => setOpen((value) => !value)}

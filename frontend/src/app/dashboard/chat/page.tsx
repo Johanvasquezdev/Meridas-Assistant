@@ -105,7 +105,7 @@ export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -129,6 +129,14 @@ export default function ChatPage() {
       stopAudioPlayback();
     };
   }, [stopAudioPlayback]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsHistoryOpen(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   const handleToggleAudio = useCallback(
     async (msgId: string, content: string) => {
@@ -262,6 +270,9 @@ export default function ChatPage() {
         }))
       );
       setConversationId(id);
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        setIsHistoryOpen(false);
+      }
     } catch (err) {
       setError("Failed to load conversation history.");
     } finally {
@@ -572,12 +583,21 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex flex-1 h-full min-h-0 relative overflow-hidden bg-[#151417] text-[#F7F3EA] font-sans">
-      {/* History Sidebar */}
+    <div className="relative flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-[#151417] font-sans text-[#F7F3EA]">
+      {isHistoryOpen && (
+        <button
+          type="button"
+          className="absolute inset-0 z-10 bg-black/50 lg:hidden"
+          aria-label="Close history"
+          onClick={() => setIsHistoryOpen(false)}
+        />
+      )}
       <aside
         className={cn(
-          "flex flex-col border-r border-white/10 bg-[#151417]/95 backdrop-blur-xl transition-all duration-300 relative z-10",
-          isHistoryOpen ? "w-72 opacity-100" : "w-0 opacity-0 pointer-events-none"
+          "flex flex-col border-r border-white/10 bg-[#151417]/95 backdrop-blur-xl transition-all duration-300",
+          isHistoryOpen
+            ? "z-20 w-72 opacity-100 max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:shadow-2xl"
+            : "w-0 overflow-hidden opacity-0 pointer-events-none"
         )}
       >
         <div className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-white/10 font-sans">
@@ -623,7 +643,7 @@ export default function ChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex flex-1 flex-col min-h-0 relative bg-[#151417] font-sans">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-[#151417] font-sans">
         {/* Toggle Sidebar Button */}
         <button
           onClick={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -634,8 +654,8 @@ export default function ChatPage() {
         </button>
 
         {/* Scoping Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#1C1B20]/60 px-14 py-2.5 backdrop-blur-md font-sans">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3 overflow-x-auto border-b border-white/10 bg-[#1C1B20]/60 px-4 py-2.5 pl-14 backdrop-blur-md font-sans">
+          <div className="flex shrink-0 items-center gap-3">
             <div className="flex items-center gap-1.5 text-[#C9A227]">
               <Filter className="size-3.5" />
               <span className="font-sans text-xs font-semibold text-[#C9A227]">
@@ -653,7 +673,7 @@ export default function ChatPage() {
                   key={site}
                   onClick={() => setSelectedSite(site)}
                   className={cn(
-                    "rounded-[6px] px-2.5 py-1 text-xs font-sans font-medium transition-all",
+                    "shrink-0 whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs font-sans font-medium transition-all",
                     selectedSite === site
                       ? "bg-[#C9A227]/15 text-[#C9A227] border border-[#C9A227]/40 shadow-sm font-semibold"
                       : "bg-[#151417] text-[#8C8A94] border border-white/5 hover:text-[#F7F3EA] hover:border-white/20"
@@ -677,7 +697,7 @@ export default function ChatPage() {
                     key={sys}
                     onClick={() => setSelectedSystem(sys)}
                     className={cn(
-                      "rounded-[6px] px-2.5 py-1 text-xs font-sans font-medium transition-all",
+                      "shrink-0 whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs font-sans font-medium transition-all",
                       selectedSystem === sys
                         ? "bg-[#C9A227]/15 text-[#C9A227] border border-[#C9A227]/40 shadow-sm font-semibold"
                         : "bg-[#151417] text-[#8C8A94] border border-white/5 hover:text-[#F7F3EA] hover:border-white/20"
@@ -702,7 +722,7 @@ export default function ChatPage() {
         {/* Messages Container */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto p-6 pb-28 scroll-smooth chat-scrollbar font-sans"
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-6 pb-28 scroll-smooth chat-scrollbar font-sans sm:px-6"
         >
           {messages.length === 0 ? (
             <div className="flex min-h-full flex-col items-center justify-center gap-6 text-center max-w-3xl mx-auto py-8">
@@ -711,7 +731,7 @@ export default function ChatPage() {
               </div>
 
               <div className="space-y-2 max-w-lg">
-                <h3 className="text-2xl font-bold tracking-tight text-[#F7F3EA] font-sans">
+                <h3 className="text-xl font-bold tracking-tight text-[#F7F3EA] font-sans sm:text-2xl">
                   Meridas assistant
                 </h3>
                 <p className="font-sans text-xs text-[#C9A227] tracking-wide font-medium">

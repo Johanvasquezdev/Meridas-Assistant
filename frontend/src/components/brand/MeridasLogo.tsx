@@ -164,6 +164,7 @@ interface MeridasLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "full" | "icon" | "stacked";
   withTagline?: boolean;
+  taglineClassName?: string;
   className?: string;
   href?: string;
 }
@@ -172,6 +173,7 @@ export function MeridasLogo({
   size = "md",
   variant = "full",
   withTagline = false,
+  taglineClassName,
   className,
   href,
 }: MeridasLogoProps) {
@@ -223,7 +225,8 @@ export function MeridasLogo({
             <span
               className={cn(
                 "mt-1 font-mono uppercase text-[#C9A227] font-medium leading-tight",
-                taglineSizes[size]
+                taglineSizes[size],
+                taglineClassName
               )}
             >
               Evidence first. Answer second.
