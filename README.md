@@ -2,7 +2,7 @@
 ### *Operational Evidence Intelligence System*
 
 <p align="center">
-  <img src="frontend/public/logo.png" alt="Meridas Logo" width="100" height="100" />
+  <img src="frontend/public/logo.png" alt="Meridas Logo" width="100" height="100"/>
 </p>
 
 <p align="center">
